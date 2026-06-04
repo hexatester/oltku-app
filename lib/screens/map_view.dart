@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:oltku/screens/map/onu_marker_options.dart';
+import 'package:oltku/screens/map/odp_marker_options.dart';
+import 'package:oltku/screens/map/cable_edit_overlay.dart';
 import 'dart:ui' as ui;
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
@@ -30,6 +33,10 @@ class _MapViewState extends State<MapView> {
   OltConfig? _oltConfig;
   MapType _mapType = MapType.normal;
 
+  bool _isEditingCable = false;
+  OnuLocationData? _editingOnuLocation;
+  List<LatLng> _editingCablePoints = [];
+
   final Map<String, IconData> _availableIcons = {
     'router': Icons.router,
     'device_hub': Icons.device_hub,
@@ -54,39 +61,6 @@ class _MapViewState extends State<MapView> {
     if (rxValue <= -24) return Colors.red;
     if (rxValue <= -8) return Colors.green;
     return Colors.blue;
-  }
-
-  Color _getFiberColor(String colorName) {
-    switch (colorName.toLowerCase()) {
-      case 'blue':
-        return Colors.blue;
-      case 'orange':
-        return Colors.orange;
-      case 'green':
-        return Colors.green;
-      case 'brown':
-        return Colors.brown;
-      case 'slate':
-        return Colors.blueGrey;
-      case 'white':
-        return Colors.white;
-      case 'red':
-        return Colors.red;
-      case 'black':
-        return Colors.grey; // Grey for visibility on dark bg
-      case 'yellow':
-        return Colors.yellow;
-      case 'violet':
-        return Colors.purple;
-      case 'rose':
-        return Colors.pinkAccent;
-      case 'aqua':
-        return Colors.cyan;
-      case 'transparent':
-        return Colors.white30;
-      default:
-        return Colors.white;
-    }
   }
 
   @override
@@ -266,7 +240,7 @@ class _MapViewState extends State<MapView> {
           anchor: const Offset(0.5, 0.5),
           draggable: true,
           icon: customIcon,
-          onTap: () => _showMarkerOptions(onu, loc),
+          onTap: () => showOnuMarkerOptions(context, widget.oltId, onu, loc, _savedOdps, _loadSavedLocations, _enterCableEditMode, widget.onuList),
           onDragEnd: (newPosition) async {
             final newLocation = OnuLocationData(
               oltId: widget.oltId,
@@ -287,35 +261,84 @@ class _MapViewState extends State<MapView> {
       );
 
       // Create polyline if assigned to an ODP
-      OdpData? assignedOdp;
-      if (loc.odpId != null) {
-        assignedOdp = _savedOdps.where((o) => o.id == loc.odpId).firstOrNull;
-      } else {
-        assignedOdp = _savedOdps.where((o) => o.onuIds.contains(loc.onuId)).firstOrNull;
-      }
-      
-      if (assignedOdp != null) {
-        List<LatLng> points = [];
-        if (loc.cablePath != null && loc.cablePath!.isNotEmpty) {
-          points.add(LatLng(loc.latitude, loc.longitude));
-          for (var pt in loc.cablePath!) {
-            points.add(LatLng(pt['latitude']!, pt['longitude']!));
-          }
-          points.add(LatLng(assignedOdp.latitude, assignedOdp.longitude));
-        } else {
-          points = [
-            LatLng(loc.latitude, loc.longitude),
-            LatLng(assignedOdp.latitude, assignedOdp.longitude),
-          ];
+      if (_isEditingCable && _editingOnuLocation?.onuId == loc.onuId) {
+        // Render draggable anchor points
+        for (int i = 0; i < _editingCablePoints.length; i++) {
+          newMarkers.add(Marker(
+            markerId: MarkerId('edit_anchor_$i'),
+            position: _editingCablePoints[i],
+            draggable: true,
+            anchor: const Offset(0.5, 0.5),
+            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueAzure),
+            onTap: () {
+              setState(() {
+                _editingCablePoints.removeAt(i);
+              });
+              _updateMarkersDirectly();
+            },
+            onDragEnd: (newPosition) {
+              setState(() {
+                _editingCablePoints[i] = newPosition;
+              });
+              _updateMarkersDirectly();
+            },
+          ));
         }
 
-        newPolylines.add(Polyline(
-          polylineId: PolylineId('line_${loc.onuId}_${assignedOdp.id}'),
-          points: points,
-          color: color,
-          width: 3,
-          patterns: [PatternItem.dash(10), PatternItem.gap(10)],
-        ));
+        // Generate polyline based on _editingCablePoints
+        OdpData? assignedOdp;
+        if (loc.odpId != null) {
+          assignedOdp = _savedOdps.where((o) => o.id == loc.odpId).firstOrNull;
+        } else {
+          assignedOdp = _savedOdps.where((o) => o.onuIds.contains(loc.onuId)).firstOrNull;
+        }
+        
+        if (assignedOdp != null) {
+          List<LatLng> points = [
+            LatLng(loc.latitude, loc.longitude),
+            ..._editingCablePoints,
+            LatLng(assignedOdp.latitude, assignedOdp.longitude),
+          ];
+
+          newPolylines.add(Polyline(
+            polylineId: PolylineId('line_${loc.onuId}_${assignedOdp.id}'),
+            points: points,
+            color: color,
+            width: 4,
+            patterns: [PatternItem.dash(10), PatternItem.gap(10)],
+          ));
+        }
+      } else {
+        OdpData? assignedOdp;
+        if (loc.odpId != null) {
+          assignedOdp = _savedOdps.where((o) => o.id == loc.odpId).firstOrNull;
+        } else {
+          assignedOdp = _savedOdps.where((o) => o.onuIds.contains(loc.onuId)).firstOrNull;
+        }
+        
+        if (assignedOdp != null) {
+          List<LatLng> points = [];
+          if (loc.cablePath != null && loc.cablePath!.isNotEmpty) {
+            points.add(LatLng(loc.latitude, loc.longitude));
+            for (var pt in loc.cablePath!) {
+              points.add(LatLng(pt['latitude']!, pt['longitude']!));
+            }
+            points.add(LatLng(assignedOdp.latitude, assignedOdp.longitude));
+          } else {
+            points = [
+              LatLng(loc.latitude, loc.longitude),
+              LatLng(assignedOdp.latitude, assignedOdp.longitude),
+            ];
+          }
+
+          newPolylines.add(Polyline(
+            polylineId: PolylineId('line_${loc.onuId}_${assignedOdp.id}'),
+            points: points,
+            color: color,
+            width: 3,
+            patterns: [PatternItem.dash(10), PatternItem.gap(10)],
+          ));
+        }
       }
     }
 
@@ -340,7 +363,7 @@ class _MapViewState extends State<MapView> {
           anchor: const Offset(0.5, 0.5),
           draggable: true,
           icon: customIcon,
-          onTap: () => _showOdpOptions(odp),
+          onTap: () => showOdpMarkerOptions(context, widget.oltId, odp, widget.onuList, _savedLocations, _loadSavedLocations),
           onDragEnd: (newPosition) async {
             final newOdp = OdpData(
               id: odp.id,
@@ -437,7 +460,7 @@ class _MapViewState extends State<MapView> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  _showAssignOnuDialog(point);
+                  showAssignOnuDialog(context, widget.oltId, point, widget.onuList, _loadSavedLocations);
                 },
               ),
               ListTile(
@@ -477,424 +500,67 @@ class _MapViewState extends State<MapView> {
     );
   }
 
-  void _showOdpOptions(OdpData odp) {
-    final connectedOnus = odp.onuIds
-        .map(
-          (id) => widget.onuList.firstWhere(
-            (o) => o.id == id,
-            orElse: () => OnuData(
-              id: id,
-              name: 'Unknown',
-              macAddress: '',
-              status: '',
-              fwVersion: '',
-              chipId: '',
-              ports: '',
-              ctcStatus: '',
-              ctcVer: '',
-              activate: '',
-              rtt: '',
-              distance: '',
-              temperature: '',
-              txPower: '',
-              rxPower: '',
-              onlineTime: '',
-              offlineTime: '',
-              offlineReason: '',
-              uptime: '',
-              deregisterCnt: '',
-            ),
-          ),
-        )
-        .toList();
 
-    final rxValues = connectedOnus
-        .map((onu) => double.tryParse(onu.rxPower.replaceAll(' dBm', '')))
-        .whereType<double>()
-        .toList();
-    double? avgRx;
-    double? bestRx;
-    double? worstRx;
-    if (rxValues.isNotEmpty) {
-      avgRx = rxValues.reduce((a, b) => a + b) / rxValues.length;
-      bestRx = rxValues.reduce((a, b) => a > b ? a : b);
-      worstRx = rxValues.reduce((a, b) => a < b ? a : b);
+
+
+
+  void _enterCableEditMode(OnuLocationData loc) {
+    setState(() {
+      _isEditingCable = true;
+      _editingOnuLocation = loc;
+      _editingCablePoints = [];
+      if (loc.cablePath != null && loc.cablePath!.isNotEmpty) {
+        for (var pt in loc.cablePath!) {
+          _editingCablePoints.add(LatLng(pt['latitude']!, pt['longitude']!));
+        }
+      } else {
+        // Find assigned ODP to create a midpoint
+        OdpData? assignedOdp;
+        if (loc.odpId != null) {
+          assignedOdp = _savedOdps.where((o) => o.id == loc.odpId).firstOrNull;
+        } else {
+          assignedOdp = _savedOdps.where((o) => o.onuIds.contains(loc.onuId)).firstOrNull;
+        }
+        if (assignedOdp != null) {
+          _editingCablePoints.add(LatLng(
+            (loc.latitude + assignedOdp.latitude) / 2,
+            (loc.longitude + assignedOdp.longitude) / 2,
+          ));
+        }
+      }
+    });
+    _updateMarkersDirectly();
+  }
+
+  Future<void> _saveCableRoute() async {
+    if (_editingOnuLocation != null) {
+      final updatedLocation = OnuLocationData(
+        oltId: _editingOnuLocation!.oltId,
+        onuId: _editingOnuLocation!.onuId,
+        latitude: _editingOnuLocation!.latitude,
+        longitude: _editingOnuLocation!.longitude,
+        cableName: _editingOnuLocation!.cableName,
+        cableLength: _editingOnuLocation!.cableLength,
+        coreColor: _editingOnuLocation!.coreColor,
+        tubeColor: _editingOnuLocation!.tubeColor,
+        odpId: _editingOnuLocation!.odpId,
+        cablePath: _editingCablePoints
+            .map((p) => {'latitude': p.latitude, 'longitude': p.longitude})
+            .toList(),
+      );
+      await StorageService.saveOnuLocation(updatedLocation);
     }
-
-    final portsAvailable = odp.portCount - odp.onuIds.length;
-    final isAvailable = portsAvailable > 0;
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1E1B2E),
-      builder: (context) {
-        return Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                odp.name,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildStat(
-                    'Connected ONUs',
-                    '${odp.onuIds.length} / ${odp.portCount}',
-                    Colors.purpleAccent,
-                  ),
-                  _buildStat(
-                    'Ports Available',
-                    isAvailable ? 'Yes ($portsAvailable)' : 'No (Full)',
-                    isAvailable ? Colors.green : Colors.red,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              if (odp.cableName != null ||
-                  odp.tubeColor != null ||
-                  odp.coreColor != null) ...[
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    if (odp.cableName != null)
-                      _buildStat(
-                        'Cable Tag',
-                        odp.cableName!,
-                        Colors.blueAccent,
-                      ),
-                    if (odp.tubeColor != null)
-                      _buildStat(
-                        'Tube',
-                        odp.tubeColor!,
-                        _getFiberColor(odp.tubeColor!),
-                      ),
-                    if (odp.coreColor != null)
-                      _buildStat(
-                        'Core',
-                        odp.coreColor!,
-                        _getFiberColor(odp.coreColor!),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-              ],
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildStat(
-                    'Avg Rx',
-                    avgRx != null ? '${avgRx.toStringAsFixed(1)} dBm' : 'N/A',
-                    avgRx != null ? _getRxColor('$avgRx dBm') : Colors.white,
-                  ),
-                  _buildStat(
-                    'Best Rx',
-                    bestRx != null ? '${bestRx.toStringAsFixed(1)} dBm' : 'N/A',
-                    bestRx != null ? _getRxColor('$bestRx dBm') : Colors.white,
-                  ),
-                  _buildStat(
-                    'Worst Rx',
-                    worstRx != null
-                        ? '${worstRx.toStringAsFixed(1)} dBm'
-                        : 'N/A',
-                    worstRx != null
-                        ? _getRxColor('$worstRx dBm')
-                        : Colors.white,
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return OdpFormDialog(
-                              oltId: widget.oltId,
-                              point: LatLng(odp.latitude, odp.longitude),
-                              existingOdp: odp,
-                              mappedOnus: _savedLocations,
-                              onuDetails: widget.onuList,
-                              onSave: (updatedOdp) async {
-                                await StorageService.saveOdp(updatedOdp);
-                                await _loadSavedLocations();
-                                if (context.mounted) Navigator.pop(context);
-                              },
-                            );
-                          },
-                        );
-                      },
-                      icon: const Icon(Icons.edit, color: Colors.white),
-                      label: const Text(
-                        'Edit',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6366F1),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        await StorageService.deleteOdp(odp.id);
-                        await _loadSavedLocations();
-                        if (context.mounted) Navigator.pop(context);
-                      },
-                      icon: const Icon(Icons.delete, color: Colors.white),
-                      label: const Text(
-                        'Delete',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red[900],
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
+    _cancelCableEdit();
+    await _loadSavedLocations();
   }
 
-  void _showAssignOnuDialog(LatLng point, {OnuLocationData? existingLocation}) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1E1B2E),
-      isScrollControlled: true,
-      builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-          ),
-          child: SizedBox(
-            height: MediaQuery.of(context).size.height * 0.7,
-            child: _AssignOnuDialog(
-              point: point,
-              onuList: widget.onuList,
-              existingLocation: existingLocation,
-              onAssign:
-                  (onuId, cableName, cableLength, coreColor, tubeColor) async {
-                    final location = OnuLocationData(
-                      oltId: widget.oltId,
-                      onuId: onuId,
-                      latitude: point.latitude,
-                      longitude: point.longitude,
-                      cableName: cableName,
-                      cableLength: cableLength,
-                      coreColor: coreColor,
-                      tubeColor: tubeColor,
-                    );
-                    await StorageService.saveOnuLocation(location);
-                    await _loadSavedLocations();
-                    if (context.mounted) {
-                      Navigator.pop(context);
-                    }
-                  },
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  void _showMarkerOptions(OnuData onu, OnuLocationData loc) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: const Color(0xFF1E1B2E),
-      builder: (context) {
-        final isOnline = onu.status == "Up";
-        final statusColor = isOnline
-            ? const Color(0xFF10B981)
-            : (onu.status == "LoopDetected"
-                  ? const Color(0xFFF59E0B)
-                  : const Color(0xFF94A3B8));
-
-        return Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                onu.name,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                onu.macAddress,
-                style: const TextStyle(
-                  fontFamily: 'monospace',
-                  color: Colors.white70,
-                ),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  _buildStat('Status', onu.status, statusColor),
-                  _buildStat(
-                    'Rx Power',
-                    '${onu.rxPower} dBm',
-                    _getRxColor(onu.rxPower, isOnline: isOnline),
-                  ),
-                  _buildStat('Distance', '${onu.distance} m', Colors.white),
-                ],
-              ),
-              const SizedBox(height: 12),
-              if (loc.cableName != null ||
-                  loc.tubeColor != null ||
-                  loc.coreColor != null ||
-                  loc.cableLength != null) ...[
-                Wrap(
-                  spacing: 16,
-                  runSpacing: 12,
-                  children: [
-                    if (loc.cableName != null)
-                      _buildStat(
-                        'Cable Tag',
-                        loc.cableName!,
-                        Colors.blueAccent,
-                      ),
-                    if (loc.cableLength != null)
-                      _buildStat('Length', '${loc.cableLength}m', Colors.white),
-                    if (loc.tubeColor != null)
-                      _buildStat(
-                        'Tube',
-                        loc.tubeColor!,
-                        _getFiberColor(loc.tubeColor!),
-                      ),
-                    if (loc.coreColor != null)
-                      _buildStat(
-                        'Core',
-                        loc.coreColor!,
-                        _getFiberColor(loc.coreColor!),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-              ],
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.pop(context); // close popup
-                        _showAssignOnuDialog(
-                          LatLng(loc.latitude, loc.longitude),
-                          existingLocation: loc,
-                        );
-                      },
-                      icon: const Icon(Icons.edit, color: Colors.white),
-                      label: const Text(
-                        'Edit Marker',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF6366F1),
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () async {
-                        await StorageService.deleteOnuLocation(
-                          widget.oltId,
-                          onu.id,
-                        );
-                        await _loadSavedLocations();
-                        if (context.mounted) {
-                          Navigator.pop(context);
-                        }
-                      },
-                      icon: const Icon(Icons.delete, color: Colors.white),
-                      label: const Text(
-                        'Delete',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red[900],
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildStat(String label, String value, Color valueColor) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(color: Colors.white54, fontSize: 12),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            color: valueColor,
-            fontWeight: FontWeight.bold,
-            fontSize: 16,
-          ),
-        ),
-      ],
-    );
+  void _cancelCableEdit() {
+    setState(() {
+      _isEditingCable = false;
+      _editingOnuLocation = null;
+      _editingCablePoints = [];
+    });
+    _updateMarkersDirectly();
   }
 
   @override
@@ -915,6 +581,14 @@ class _MapViewState extends State<MapView> {
               target: _currentLocation ?? const LatLng(0, 0),
               zoom: 15.0,
             ),
+            onTap: (point) {
+              if (_isEditingCable) {
+                setState(() {
+                  _editingCablePoints.add(point);
+                });
+                _updateMarkersDirectly();
+              }
+            },
             onLongPress: _handleMapLongPress,
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
@@ -941,311 +615,11 @@ class _MapViewState extends State<MapView> {
               ),
             ),
           ),
+          if (_isEditingCable)
+            CableEditOverlay(onCancel: _cancelCableEdit, onSave: _saveCableRoute),
         ],
       ),
     );
   }
 }
 
-class _AssignOnuDialog extends StatefulWidget {
-  final LatLng point;
-  final List<OnuData> onuList;
-  final Function(String, String?, String?, String?, String?) onAssign;
-  final OnuLocationData? existingLocation;
-
-  const _AssignOnuDialog({
-    required this.point,
-    required this.onuList,
-    required this.onAssign,
-    this.existingLocation,
-  });
-
-  @override
-  State<_AssignOnuDialog> createState() => _AssignOnuDialogState();
-}
-
-class _AssignOnuDialogState extends State<_AssignOnuDialog> {
-  String _searchQuery = '';
-  String? _selectedOnuId;
-  late TextEditingController _cableNameController;
-  late TextEditingController _cableLengthController;
-  String? _selectedCoreColor;
-  String? _selectedTubeColor;
-
-  static const List<String> _fiberColors = [
-    'Transparent',
-    'Blue',
-    'Orange',
-    'Green',
-    'Brown',
-    'Slate',
-    'White',
-    'Red',
-    'Black',
-    'Yellow',
-    'Violet',
-    'Rose',
-    'Aqua',
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    _selectedOnuId = widget.existingLocation?.onuId;
-    _cableNameController = TextEditingController(
-      text: widget.existingLocation?.cableName ?? '',
-    );
-    _cableLengthController = TextEditingController(
-      text: widget.existingLocation?.cableLength ?? '',
-    );
-    _selectedCoreColor = widget.existingLocation?.coreColor;
-    _selectedTubeColor = widget.existingLocation?.tubeColor;
-  }
-
-  @override
-  void dispose() {
-    _cableNameController.dispose();
-    _cableLengthController.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_selectedOnuId != null) {
-      final onu = widget.onuList.firstWhere((o) => o.id == _selectedOnuId!);
-      return Container(
-        padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                'Details for ${onu.name}',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: _cableNameController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Cable Name (Optional)',
-                  labelStyle: const TextStyle(color: Colors.white54),
-                  filled: true,
-                  fillColor: Colors.black26,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: _cableLengthController,
-                style: const TextStyle(color: Colors.white),
-                decoration: InputDecoration(
-                  labelText: 'Cable Length in meters (Optional)',
-                  labelStyle: const TextStyle(color: Colors.white54),
-                  filled: true,
-                  fillColor: Colors.black26,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(8),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-                keyboardType: TextInputType.number,
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _selectedTubeColor,
-                      dropdownColor: const Color(0xFF2D2A43),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Tube Color (Optional)',
-                        labelStyle: const TextStyle(color: Colors.white54),
-                        filled: true,
-                        fillColor: Colors.black26,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      items: _fiberColors
-                          .where((c) => c != 'Transparent')
-                          .map(
-                            (color) => DropdownMenuItem(
-                              value: color,
-                              child: Text(color),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (val) =>
-                          setState(() => _selectedTubeColor = val),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: DropdownButtonFormField<String>(
-                      initialValue: _selectedCoreColor,
-                      dropdownColor: const Color(0xFF2D2A43),
-                      style: const TextStyle(color: Colors.white),
-                      decoration: InputDecoration(
-                        labelText: 'Core Color (Optional)',
-                        labelStyle: const TextStyle(color: Colors.white54),
-                        filled: true,
-                        fillColor: Colors.black26,
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(8),
-                          borderSide: BorderSide.none,
-                        ),
-                      ),
-                      items: _fiberColors
-                          .map(
-                            (color) => DropdownMenuItem(
-                              value: color,
-                              child: Text(color),
-                            ),
-                          )
-                          .toList(),
-                      onChanged: (val) =>
-                          setState(() => _selectedCoreColor = val),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.end,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      if (widget.existingLocation != null) {
-                        Navigator.pop(context);
-                      } else {
-                        setState(() => _selectedOnuId = null);
-                      }
-                    },
-                    child: Text(
-                      widget.existingLocation != null ? 'Cancel' : 'Back',
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
-                    onPressed: () {
-                      widget.onAssign(
-                        _selectedOnuId!,
-                        _cableNameController.text.trim().isEmpty
-                            ? null
-                            : _cableNameController.text.trim(),
-                        _cableLengthController.text.trim().isEmpty
-                            ? null
-                            : _cableLengthController.text.trim(),
-                        _selectedCoreColor,
-                        _selectedTubeColor,
-                      );
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF6366F1),
-                    ),
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(color: Colors.white),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-      );
-    }
-
-    final filteredList = widget.onuList.where((onu) {
-      final query = _searchQuery.toLowerCase();
-      return onu.name.toLowerCase().contains(query) ||
-          onu.macAddress.toLowerCase().contains(query) ||
-          onu.id.toLowerCase().contains(query);
-    }).toList();
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Assign Location to ONU',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Lat: ${widget.point.latitude.toStringAsFixed(4)}, Lng: ${widget.point.longitude.toStringAsFixed(4)}',
-            style: const TextStyle(color: Colors.white70),
-          ),
-          const SizedBox(height: 16),
-          TextField(
-            style: const TextStyle(color: Colors.white),
-            decoration: InputDecoration(
-              hintText: 'Search ONU...',
-              hintStyle: const TextStyle(color: Colors.white54),
-              prefixIcon: const Icon(Icons.search, color: Colors.white54),
-              filled: true,
-              fillColor: Colors.black26,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
-              ),
-            ),
-            onChanged: (value) {
-              setState(() {
-                _searchQuery = value;
-              });
-            },
-          ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: ListView.builder(
-              itemCount: filteredList.length,
-              itemBuilder: (context, index) {
-                final onu = filteredList[index];
-                return ListTile(
-                  title: Text(
-                    onu.name,
-                    style: const TextStyle(color: Colors.white),
-                  ),
-                  subtitle: Text(
-                    onu.macAddress,
-                    style: const TextStyle(color: Colors.white54),
-                  ),
-                  trailing: const Icon(
-                    Icons.add_location,
-                    color: Color(0xFF6366F1),
-                  ),
-                  onTap: () {
-                    setState(() {
-                      _selectedOnuId = onu.id;
-                      _cableNameController.clear();
-                      _cableLengthController.clear();
-                      _selectedCoreColor = null;
-                      _selectedTubeColor = null;
-                    });
-                  },
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
