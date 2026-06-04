@@ -9,8 +9,6 @@ import 'package:oltku/models/odp_data.dart';
 import 'package:oltku/services/storage_service.dart';
 import 'package:oltku/widgets/odp_form_dialog.dart';
 
-
-
 class MapView extends StatefulWidget {
   final String oltId;
   final List<OnuData> onuList;
@@ -29,6 +27,7 @@ class _MapViewState extends State<MapView> {
   List<OdpData> _savedOdps = [];
   bool _isLoading = true;
   OltConfig? _oltConfig;
+  MapType _mapType = MapType.normal;
 
   final Map<String, IconData> _availableIcons = {
     'router': Icons.router,
@@ -101,7 +100,11 @@ class _MapViewState extends State<MapView> {
     await _getCurrentLocation();
   }
 
-  Future<BitmapDescriptor> _getCachedIconBitmap(IconData iconData, Color color, {double size = 100.0}) async {
+  Future<BitmapDescriptor> _getCachedIconBitmap(
+    IconData iconData,
+    Color color, {
+    double size = 100.0,
+  }) async {
     final String cacheKey = '${iconData.codePoint}_${color.toARGB32()}';
     if (_iconCache.containsKey(cacheKey)) {
       return _iconCache[cacheKey]!;
@@ -109,8 +112,10 @@ class _MapViewState extends State<MapView> {
 
     final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(pictureRecorder);
-    
-    final TextPainter shadowPainter = TextPainter(textDirection: TextDirection.ltr);
+
+    final TextPainter shadowPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+    );
     shadowPainter.text = TextSpan(
       text: String.fromCharCode(iconData.codePoint),
       style: TextStyle(
@@ -123,7 +128,9 @@ class _MapViewState extends State<MapView> {
     shadowPainter.layout();
     shadowPainter.paint(canvas, const Offset(2.0, 2.0));
 
-    final TextPainter textPainter = TextPainter(textDirection: TextDirection.ltr);
+    final TextPainter textPainter = TextPainter(
+      textDirection: TextDirection.ltr,
+    );
     textPainter.text = TextSpan(
       text: String.fromCharCode(iconData.codePoint),
       style: TextStyle(
@@ -136,10 +143,13 @@ class _MapViewState extends State<MapView> {
     textPainter.layout();
     textPainter.paint(canvas, const Offset(0.0, 0.0));
 
-    final img = await pictureRecorder.endRecording().toImage(size.toInt() + 4, size.toInt() + 4);
+    final img = await pictureRecorder.endRecording().toImage(
+      size.toInt() + 4,
+      size.toInt() + 4,
+    );
     final data = await img.toByteData(format: ui.ImageByteFormat.png);
     final bitmap = BitmapDescriptor.bytes(data!.buffer.asUint8List());
-    
+
     _iconCache[cacheKey] = bitmap;
     return bitmap;
   }
@@ -158,7 +168,7 @@ class _MapViewState extends State<MapView> {
 
   Future<void> _updateMarkersDirectly() async {
     Set<Marker> newMarkers = {};
-    
+
     for (var loc in _savedLocations) {
       final onu = widget.onuList.firstWhere(
         (o) => o.id == loc.onuId,
@@ -188,68 +198,80 @@ class _MapViewState extends State<MapView> {
 
       final isOnline = onu.status == "Up";
       final color = _getRxColor(onu.rxPower, isOnline: isOnline);
-      
+
       final iconName = _oltConfig?.onuIcon ?? 'router';
       final iconData = _availableIcons[iconName] ?? Icons.router;
-      final customIcon = await _getCachedIconBitmap(iconData, color, size: _oltConfig?.markerSize ?? 100.0);
+      final customIcon = await _getCachedIconBitmap(
+        iconData,
+        color,
+        size: _oltConfig?.markerSize ?? 20.0,
+      );
 
-      newMarkers.add(Marker(
-        markerId: MarkerId('onu_${loc.onuId}'),
-        position: LatLng(loc.latitude, loc.longitude),
-        draggable: true,
-        icon: customIcon,
-        onTap: () => _showMarkerOptions(onu, loc),
-        onDragEnd: (newPosition) async {
-          final newLocation = OnuLocationData(
-            oltId: widget.oltId,
-            onuId: onu.id,
-            latitude: newPosition.latitude,
-            longitude: newPosition.longitude,
-            cableName: loc.cableName,
-            cableLength: loc.cableLength,
-            coreColor: loc.coreColor,
-            tubeColor: loc.tubeColor,
-          );
-          await StorageService.saveOnuLocation(newLocation);
-          await _loadSavedLocations();
-        },
-      ));
+      newMarkers.add(
+        Marker(
+          markerId: MarkerId('onu_${loc.onuId}'),
+          position: LatLng(loc.latitude, loc.longitude),
+          draggable: true,
+          icon: customIcon,
+          onTap: () => _showMarkerOptions(onu, loc),
+          onDragEnd: (newPosition) async {
+            final newLocation = OnuLocationData(
+              oltId: widget.oltId,
+              onuId: onu.id,
+              latitude: newPosition.latitude,
+              longitude: newPosition.longitude,
+              cableName: loc.cableName,
+              cableLength: loc.cableLength,
+              coreColor: loc.coreColor,
+              tubeColor: loc.tubeColor,
+            );
+            await StorageService.saveOnuLocation(newLocation);
+            await _loadSavedLocations();
+          },
+        ),
+      );
     }
 
     for (var odp in _savedOdps) {
       final color = odp.cachedAvgRxPower != null
           ? _getRxColor('${odp.cachedAvgRxPower} dBm')
           : Colors.purple;
-          
+
       final iconName = _oltConfig?.odpIcon ?? 'device_hub';
       final iconData = _availableIcons[iconName] ?? Icons.device_hub;
-      final customIcon = await _getCachedIconBitmap(iconData, color, size: _oltConfig?.markerSize ?? 100.0);
+      final customIcon = await _getCachedIconBitmap(
+        iconData,
+        color,
+        size: _oltConfig?.markerSize ?? 25.0,
+      );
 
-      newMarkers.add(Marker(
-        markerId: MarkerId('odp_${odp.id}'),
-        position: LatLng(odp.latitude, odp.longitude),
-        draggable: true,
-        icon: customIcon,
-        onTap: () => _showOdpOptions(odp),
-        onDragEnd: (newPosition) async {
-          final newOdp = OdpData(
-            id: odp.id,
-            oltId: odp.oltId,
-            name: odp.name,
-            latitude: newPosition.latitude,
-            longitude: newPosition.longitude,
-            parentId: odp.parentId,
-            portCount: odp.portCount,
-            cachedAvgRxPower: odp.cachedAvgRxPower,
-            cableName: odp.cableName,
-            coreColor: odp.coreColor,
-            tubeColor: odp.tubeColor,
-            onuIds: odp.onuIds,
-          );
-          await StorageService.saveOdp(newOdp);
-          await _loadSavedLocations();
-        },
-      ));
+      newMarkers.add(
+        Marker(
+          markerId: MarkerId('odp_${odp.id}'),
+          position: LatLng(odp.latitude, odp.longitude),
+          draggable: true,
+          icon: customIcon,
+          onTap: () => _showOdpOptions(odp),
+          onDragEnd: (newPosition) async {
+            final newOdp = OdpData(
+              id: odp.id,
+              oltId: odp.oltId,
+              name: odp.name,
+              latitude: newPosition.latitude,
+              longitude: newPosition.longitude,
+              parentId: odp.parentId,
+              portCount: odp.portCount,
+              cachedAvgRxPower: odp.cachedAvgRxPower,
+              cableName: odp.cableName,
+              coreColor: odp.coreColor,
+              tubeColor: odp.tubeColor,
+              onuIds: odp.onuIds,
+            );
+            await StorageService.saveOdp(newOdp);
+            await _loadSavedLocations();
+          },
+        ),
+      );
     }
 
     if (mounted) {
@@ -486,9 +508,7 @@ class _MapViewState extends State<MapView> {
                   _buildStat(
                     'Best Rx',
                     bestRx != null ? '${bestRx.toStringAsFixed(1)} dBm' : 'N/A',
-                    bestRx != null
-                        ? _getRxColor('$bestRx dBm')
-                        : Colors.white,
+                    bestRx != null ? _getRxColor('$bestRx dBm') : Colors.white,
                   ),
                   _buildStat(
                     'Worst Rx',
@@ -793,18 +813,45 @@ class _MapViewState extends State<MapView> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    return GoogleMap(
-      onMapCreated: (controller) {
-        _mapController = controller;
-      },
-      initialCameraPosition: CameraPosition(
-        target: _currentLocation ?? const LatLng(0, 0),
-        zoom: 15.0,
+    return Scaffold(
+      body: Stack(
+        children: [
+          GoogleMap(
+            mapType: _mapType,
+            onMapCreated: (controller) {
+              _mapController = controller;
+            },
+            initialCameraPosition: CameraPosition(
+              target: _currentLocation ?? const LatLng(0, 0),
+              zoom: 15.0,
+            ),
+            onLongPress: _handleMapLongPress,
+            myLocationEnabled: true,
+            myLocationButtonEnabled: true,
+            markers: _markers,
+          ),
+          Positioned(
+            top: 60,
+            right: 16,
+            child: FloatingActionButton(
+              heroTag: 'mapTypeToggle',
+              backgroundColor: const Color(0xFF2D2A43),
+              mini: true,
+              onPressed: () {
+                setState(() {
+                  _mapType = _mapType == MapType.normal
+                      ? MapType.satellite
+                      : MapType.normal;
+                });
+              },
+              child: Icon(
+                _mapType == MapType.normal ? Icons.satellite : Icons.map,
+                color: Colors.white,
+              ),
+            ),
+          ),
+        ],
       ),
-      onLongPress: _handleMapLongPress,
-      myLocationEnabled: true,
-      myLocationButtonEnabled: true,
-      markers: _markers,
     );
   }
 }
