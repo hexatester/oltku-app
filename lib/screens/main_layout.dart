@@ -121,13 +121,13 @@ class _MainLayoutState extends State<MainLayout> {
             margin: const EdgeInsets.only(right: 12),
             decoration: BoxDecoration(
               color: OltService.isLastLoadFromCache
-                  ? const Color(0xFFF59E0B).withOpacity(0.1)
-                  : const Color(0xFF10B981).withOpacity(0.1),
+                  ? const Color(0xFFF59E0B).withValues(alpha: 0.1)
+                  : const Color(0xFF10B981).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
                 color: OltService.isLastLoadFromCache
-                    ? const Color(0xFFF59E0B).withOpacity(0.3)
-                    : const Color(0xFF10B981).withOpacity(0.3),
+                    ? const Color(0xFFF59E0B).withValues(alpha: 0.3)
+                    : const Color(0xFF10B981).withValues(alpha: 0.3),
               ),
             ),
             child: Row(

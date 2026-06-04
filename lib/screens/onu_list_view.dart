@@ -79,10 +79,12 @@ class _OnuListViewState extends State<OnuListView> {
   void _applyFilters() {
     setState(() {
       _filteredList = widget.onuList.where((onu) {
-        if (widget.currentFilter == "Online" && onu.status != "Up")
+        if (widget.currentFilter == "Online" && onu.status != "Up") {
           return false;
-        if (widget.currentFilter == "Offline" && onu.status == "Up")
+        }
+        if (widget.currentFilter == "Offline" && onu.status == "Up") {
           return false;
+        }
         if (widget.currentFilter == "Bad Rx") {
           if (onu.status != "Up") return false;
           final rx = double.tryParse(onu.rxPower);
@@ -165,8 +167,9 @@ class _OnuListViewState extends State<OnuListView> {
 
       final splitA = partsA[1].split(':');
       final splitB = partsB[1].split(':');
-      if (splitA.length < 2 || splitB.length < 2)
+      if (splitA.length < 2 || splitB.length < 2) {
         return partsA[1].compareTo(partsB[1]);
+      }
 
       final portA = int.parse(splitA[0]);
       final portB = int.parse(splitB[0]);

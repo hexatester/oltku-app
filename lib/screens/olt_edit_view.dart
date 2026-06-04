@@ -463,7 +463,7 @@ class _OltEditViewState extends State<OltEditView> {
                             const SizedBox(height: 20),
                             // ONU Icon
                             DropdownButtonFormField<String>(
-                              value: _selectedOnuIcon,
+                              initialValue: _selectedOnuIcon,
                               dropdownColor: const Color(0xFF1E1B2E),
                               decoration: InputDecoration(
                                 labelText: 'ONU Map Marker Icon',
@@ -511,7 +511,7 @@ class _OltEditViewState extends State<OltEditView> {
                             const SizedBox(height: 20),
                             // ODP Icon
                             DropdownButtonFormField<String>(
-                              value: _selectedOdpIcon,
+                              initialValue: _selectedOdpIcon,
                               dropdownColor: const Color(0xFF1E1B2E),
                               decoration: InputDecoration(
                                 labelText: 'ODP Map Marker Icon',

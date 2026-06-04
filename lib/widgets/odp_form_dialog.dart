@@ -129,7 +129,7 @@ class _OdpFormDialogState extends State<OdpFormDialog> {
               children: [
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _selectedTubeColor,
+                    initialValue: _selectedTubeColor,
                     dropdownColor: const Color(0xFF2D2A43),
                     style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(
@@ -145,7 +145,7 @@ class _OdpFormDialogState extends State<OdpFormDialog> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: DropdownButtonFormField<String>(
-                    value: _selectedCoreColor,
+                    initialValue: _selectedCoreColor,
                     dropdownColor: const Color(0xFF2D2A43),
                     style: const TextStyle(color: Colors.white),
                     decoration: const InputDecoration(

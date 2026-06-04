@@ -163,16 +163,16 @@ class _OltListViewState extends State<OltListView> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Icon(Icons.router_outlined, size: 64, color: Colors.white.withOpacity(0.2)),
+                      Icon(Icons.router_outlined, size: 64, color: Colors.white.withValues(alpha: 0.2)),
                       const SizedBox(height: 16),
                       Text(
                         'No OLTs Saved Yet',
-                        style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 18),
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 18),
                       ),
                       const SizedBox(height: 8),
                       Text(
                         'Click the + button to add a new connection.',
-                        style: TextStyle(color: Colors.white.withOpacity(0.4), fontSize: 14),
+                        style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 14),
                       ),
                     ],
                   ),
@@ -195,7 +195,7 @@ class _OltListViewState extends State<OltListView> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF6366F1).withOpacity(0.1),
+                                  color: const Color(0xFF6366F1).withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(Icons.router, color: Color(0xFF6366F1)),
@@ -212,13 +212,13 @@ class _OltListViewState extends State<OltListView> {
                                     const SizedBox(height: 4),
                                     Text(
                                       config.url,
-                                      style: TextStyle(color: Colors.white.withOpacity(0.6), fontSize: 13),
+                                      style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 13),
                                     ),
                                     const SizedBox(height: 4),
                                     Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: const Color(0xFF06B6D4).withOpacity(0.1),
+                                        color: const Color(0xFF06B6D4).withValues(alpha: 0.1),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(

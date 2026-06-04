@@ -228,7 +228,7 @@ class OnuData {
     final String rxPowerVal = getVal(opmRaw, 5);
 
     return OnuData(
-      oltId: this.oltId,
+      oltId: oltId,
       id: id,
       name: configName.isNotEmpty ? configName : name,
       macAddress: macAddress,

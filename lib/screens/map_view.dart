@@ -126,7 +126,7 @@ class _MapViewState extends State<MapView> {
   }
 
   Future<BitmapDescriptor> _getCachedIconBitmap(IconData iconData, Color color, {double size = 100.0}) async {
-    final String cacheKey = '${iconData.codePoint}_${color.value}';
+    final String cacheKey = '${iconData.codePoint}_${color.toARGB32()}';
     if (_iconCache.containsKey(cacheKey)) {
       return _iconCache[cacheKey]!;
     }
@@ -162,7 +162,7 @@ class _MapViewState extends State<MapView> {
 
     final img = await pictureRecorder.endRecording().toImage(size.toInt() + 4, size.toInt() + 4);
     final data = await img.toByteData(format: ui.ImageByteFormat.png);
-    final bitmap = BitmapDescriptor.fromBytes(data!.buffer.asUint8List());
+    final bitmap = BitmapDescriptor.bytes(data!.buffer.asUint8List());
     
     _iconCache[cacheKey] = bitmap;
     return bitmap;
@@ -333,7 +333,7 @@ class _MapViewState extends State<MapView> {
     final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
     final Canvas canvas = Canvas(pictureRecorder);
     final Paint paint1 = Paint()
-      ..color = const Color(0xFF6366F1).withOpacity(0.8);
+      ..color = const Color(0xFF6366F1).withValues(alpha: 0.8);
     final Paint paint2 = Paint()..color = Colors.white;
 
     canvas.drawCircle(Offset(size / 2, size / 2), size / 2.0, paint1);
@@ -584,13 +584,13 @@ class _MapViewState extends State<MapView> {
                   _buildStat(
                     'Avg Rx',
                     avgRx != null ? '${avgRx.toStringAsFixed(1)} dBm' : 'N/A',
-                    avgRx != null ? _getRxColor('${avgRx} dBm') : Colors.white,
+                    avgRx != null ? _getRxColor('$avgRx dBm') : Colors.white,
                   ),
                   _buildStat(
                     'Best Rx',
                     bestRx != null ? '${bestRx.toStringAsFixed(1)} dBm' : 'N/A',
                     bestRx != null
-                        ? _getRxColor('${bestRx} dBm')
+                        ? _getRxColor('$bestRx dBm')
                         : Colors.white,
                   ),
                   _buildStat(
@@ -599,7 +599,7 @@ class _MapViewState extends State<MapView> {
                         ? '${worstRx.toStringAsFixed(1)} dBm'
                         : 'N/A',
                     worstRx != null
-                        ? _getRxColor('${worstRx} dBm')
+                        ? _getRxColor('$worstRx dBm')
                         : Colors.white,
                   ),
                 ],
@@ -1031,7 +1031,7 @@ class _AssignOnuDialogState extends State<_AssignOnuDialog> {
                 children: [
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _selectedTubeColor,
+                      initialValue: _selectedTubeColor,
                       dropdownColor: const Color(0xFF2D2A43),
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
@@ -1060,7 +1060,7 @@ class _AssignOnuDialogState extends State<_AssignOnuDialog> {
                   const SizedBox(width: 12),
                   Expanded(
                     child: DropdownButtonFormField<String>(
-                      value: _selectedCoreColor,
+                      initialValue: _selectedCoreColor,
                       dropdownColor: const Color(0xFF2D2A43),
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
