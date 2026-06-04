@@ -9,6 +9,7 @@ class OltConfig {
   final int? lastRefreshTime;
   final String? onuIcon;
   final String? odpIcon;
+  final double? markerSize;
 
   OltConfig({
     required this.id,
@@ -21,6 +22,7 @@ class OltConfig {
     this.lastRefreshTime,
     this.onuIcon,
     this.odpIcon,
+    this.markerSize,
   });
 
   factory OltConfig.fromJson(Map<String, dynamic> json) {
@@ -35,6 +37,7 @@ class OltConfig {
       lastRefreshTime: json['lastRefreshTime'],
       onuIcon: json['onuIcon'],
       odpIcon: json['odpIcon'],
+      markerSize: json['markerSize']?.toDouble(),
     );
   }
 
@@ -50,6 +53,7 @@ class OltConfig {
       'lastRefreshTime': lastRefreshTime,
       'onuIcon': onuIcon,
       'odpIcon': odpIcon,
+      'markerSize': markerSize,
     };
   }
 }

@@ -38,6 +38,7 @@ class _OltEditViewState extends State<OltEditView> {
   
   String _selectedOnuIcon = 'router';
   String _selectedOdpIcon = 'device_hub';
+  double _markerSize = 100.0;
 
   @override
   void initState() {
@@ -56,6 +57,9 @@ class _OltEditViewState extends State<OltEditView> {
       }
       if (widget.existingConfig!.odpIcon != null && _availableIcons.containsKey(widget.existingConfig!.odpIcon)) {
         _selectedOdpIcon = widget.existingConfig!.odpIcon!;
+      }
+      if (widget.existingConfig!.markerSize != null) {
+        _markerSize = widget.existingConfig!.markerSize!;
       }
     }
   }
@@ -100,6 +104,7 @@ class _OltEditViewState extends State<OltEditView> {
         lastRefreshTime: widget.existingConfig?.lastRefreshTime,
         onuIcon: _selectedOnuIcon,
         odpIcon: _selectedOdpIcon,
+        markerSize: _markerSize,
       );
       await StorageService.saveOltConfig(config);
 
@@ -555,6 +560,30 @@ class _OltEditViewState extends State<OltEditView> {
                                   });
                                 }
                               },
+                            ),
+                            const SizedBox(height: 20),
+                            // Marker Size Slider
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'Map Marker Size: ${_markerSize.toInt()}',
+                                  style: const TextStyle(color: Colors.white70),
+                                ),
+                                Slider(
+                                  value: _markerSize,
+                                  min: 20.0,
+                                  max: 200.0,
+                                  divisions: 18,
+                                  activeColor: const Color(0xFF06B6D4),
+                                  inactiveColor: Colors.white24,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _markerSize = value;
+                                    });
+                                  },
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 30),
                             // Submit Button

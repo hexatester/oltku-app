@@ -191,7 +191,7 @@ class _MapViewState extends State<MapView> {
       
       final iconName = _oltConfig?.onuIcon ?? 'router';
       final iconData = _availableIcons[iconName] ?? Icons.router;
-      final customIcon = await _getCachedIconBitmap(iconData, color);
+      final customIcon = await _getCachedIconBitmap(iconData, color, size: _oltConfig?.markerSize ?? 100.0);
 
       newMarkers.add(Marker(
         markerId: MarkerId('onu_${loc.onuId}'),
@@ -223,7 +223,7 @@ class _MapViewState extends State<MapView> {
           
       final iconName = _oltConfig?.odpIcon ?? 'device_hub';
       final iconData = _availableIcons[iconName] ?? Icons.device_hub;
-      final customIcon = await _getCachedIconBitmap(iconData, color);
+      final customIcon = await _getCachedIconBitmap(iconData, color, size: _oltConfig?.markerSize ?? 100.0);
 
       newMarkers.add(Marker(
         markerId: MarkerId('odp_${odp.id}'),
