@@ -22,6 +22,7 @@ class MapView extends StatefulWidget {
 class _MapViewState extends State<MapView> {
   GoogleMapController? _mapController;
   Set<Marker> _markers = {};
+  Set<Polyline> _polylines = {};
   LatLng? _currentLocation;
   List<OnuLocationData> _savedLocations = [];
   List<OdpData> _savedOdps = [];
@@ -104,8 +105,9 @@ class _MapViewState extends State<MapView> {
     IconData iconData,
     Color color, {
     double size = 100.0,
+    String? label,
   }) async {
-    final String cacheKey = '${iconData.codePoint}_${color.toARGB32()}';
+    final String cacheKey = '${iconData.codePoint}_${color.toARGB32()}_$label';
     if (_iconCache.containsKey(cacheKey)) {
       return _iconCache[cacheKey]!;
     }
@@ -126,7 +128,6 @@ class _MapViewState extends State<MapView> {
       ),
     );
     shadowPainter.layout();
-    shadowPainter.paint(canvas, const Offset(2.0, 2.0));
 
     final TextPainter textPainter = TextPainter(
       textDirection: TextDirection.ltr,
@@ -141,11 +142,59 @@ class _MapViewState extends State<MapView> {
       ),
     );
     textPainter.layout();
-    textPainter.paint(canvas, const Offset(0.0, 0.0));
+
+    TextPainter? labelPainter;
+    TextPainter? labelShadowPainter;
+    double labelHeight = 0;
+    double labelWidth = 0;
+
+    if (label != null && label.isNotEmpty) {
+      labelShadowPainter = TextPainter(
+        textDirection: TextDirection.ltr,
+      );
+      labelShadowPainter.text = TextSpan(
+        text: label,
+        style: TextStyle(
+          fontSize: size * 0.4,
+          color: Colors.black,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+      labelShadowPainter.layout();
+
+      labelPainter = TextPainter(
+        textDirection: TextDirection.ltr,
+      );
+      labelPainter.text = TextSpan(
+        text: label,
+        style: TextStyle(
+          fontSize: size * 0.4,
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+      );
+      labelPainter.layout();
+
+      labelHeight = labelPainter.height;
+      labelWidth = labelPainter.width;
+    }
+
+    final double width = (size > labelWidth ? size : labelWidth) + 4;
+    final double height = size + labelHeight * 2 + 4;
+
+    final double iconX = (width - size) / 2;
+    shadowPainter.paint(canvas, Offset(iconX + 2.0, labelHeight + 2.0));
+    textPainter.paint(canvas, Offset(iconX, labelHeight));
+
+    if (label != null && label.isNotEmpty) {
+      final double labelX = (width - labelWidth) / 2;
+      labelShadowPainter!.paint(canvas, Offset(labelX + 1.0, labelHeight + size + 1.0));
+      labelPainter!.paint(canvas, Offset(labelX, labelHeight + size));
+    }
 
     final img = await pictureRecorder.endRecording().toImage(
-      size.toInt() + 4,
-      size.toInt() + 4,
+      width.toInt(),
+      height.toInt(),
     );
     final data = await img.toByteData(format: ui.ImageByteFormat.png);
     final bitmap = BitmapDescriptor.bytes(data!.buffer.asUint8List());
@@ -168,6 +217,8 @@ class _MapViewState extends State<MapView> {
 
   Future<void> _updateMarkersDirectly() async {
     Set<Marker> newMarkers = {};
+
+    Set<Polyline> newPolylines = {};
 
     for (var loc in _savedLocations) {
       final onu = widget.onuList.firstWhere(
@@ -205,6 +256,7 @@ class _MapViewState extends State<MapView> {
         iconData,
         color,
         size: _oltConfig?.markerSize ?? 20.0,
+        label: onu.name,
       );
 
       newMarkers.add(
@@ -225,12 +277,46 @@ class _MapViewState extends State<MapView> {
               cableLength: loc.cableLength,
               coreColor: loc.coreColor,
               tubeColor: loc.tubeColor,
+              odpId: loc.odpId,
+              cablePath: loc.cablePath,
             );
             await StorageService.saveOnuLocation(newLocation);
             await _loadSavedLocations();
           },
         ),
       );
+
+      // Create polyline if assigned to an ODP
+      OdpData? assignedOdp;
+      if (loc.odpId != null) {
+        assignedOdp = _savedOdps.where((o) => o.id == loc.odpId).firstOrNull;
+      } else {
+        assignedOdp = _savedOdps.where((o) => o.onuIds.contains(loc.onuId)).firstOrNull;
+      }
+      
+      if (assignedOdp != null) {
+        List<LatLng> points = [];
+        if (loc.cablePath != null && loc.cablePath!.isNotEmpty) {
+          points.add(LatLng(loc.latitude, loc.longitude));
+          for (var pt in loc.cablePath!) {
+            points.add(LatLng(pt['latitude']!, pt['longitude']!));
+          }
+          points.add(LatLng(assignedOdp.latitude, assignedOdp.longitude));
+        } else {
+          points = [
+            LatLng(loc.latitude, loc.longitude),
+            LatLng(assignedOdp.latitude, assignedOdp.longitude),
+          ];
+        }
+
+        newPolylines.add(Polyline(
+          polylineId: PolylineId('line_${loc.onuId}_${assignedOdp.id}'),
+          points: points,
+          color: color,
+          width: 3,
+          patterns: [PatternItem.dash(10), PatternItem.gap(10)],
+        ));
+      }
     }
 
     for (var odp in _savedOdps) {
@@ -244,6 +330,7 @@ class _MapViewState extends State<MapView> {
         iconData,
         color,
         size: _oltConfig?.markerSize ?? 25.0,
+        label: odp.name,
       );
 
       newMarkers.add(
@@ -279,6 +366,7 @@ class _MapViewState extends State<MapView> {
     if (mounted) {
       setState(() {
         _markers = newMarkers;
+        _polylines = newPolylines;
       });
     }
   }
@@ -831,6 +919,7 @@ class _MapViewState extends State<MapView> {
             myLocationEnabled: true,
             myLocationButtonEnabled: true,
             markers: _markers,
+            polylines: _polylines,
           ),
           Positioned(
             top: 60,
