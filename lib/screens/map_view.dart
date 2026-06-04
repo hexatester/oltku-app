@@ -240,7 +240,7 @@ class _MapViewState extends State<MapView> {
           anchor: const Offset(0.5, 0.5),
           draggable: true,
           icon: customIcon,
-          onTap: () => showOnuMarkerOptions(context, widget.oltId, onu, loc, _savedOdps, _loadSavedLocations, _enterCableEditMode, widget.onuList),
+          onTap: () => showOnuMarkerOptions(context, widget.oltId, onu, loc, _savedOdps, _loadSavedLocations, _enterCableEditMode, widget.onuList, _savedLocations),
           onDragEnd: (newPosition) async {
             final newLocation = OnuLocationData(
               oltId: widget.oltId,
@@ -460,7 +460,7 @@ class _MapViewState extends State<MapView> {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  showAssignOnuDialog(context, widget.oltId, point, widget.onuList, _loadSavedLocations);
+                  showAssignOnuDialog(context, widget.oltId, point, widget.onuList, _savedLocations, _loadSavedLocations);
                 },
               ),
               ListTile(

@@ -63,6 +63,7 @@ void showAssignOnuDialog(
   String oltId,
   LatLng point,
   List<OnuData> onuList,
+  List<OnuLocationData> savedLocations,
   VoidCallback onSaved,
   {OnuLocationData? existingLocation}
 ) {
@@ -80,6 +81,7 @@ void showAssignOnuDialog(
           child: AssignOnuDialogWidget(
             point: point,
             onuList: onuList,
+            savedLocations: savedLocations,
             existingLocation: existingLocation,
             onAssign: (onuId, cableName, cableLength, coreColor, tubeColor) async {
               final location = OnuLocationData(
@@ -116,6 +118,7 @@ void showOnuMarkerOptions(
   VoidCallback onRefresh,
   Function(OnuLocationData) onEditCable,
   List<OnuData> onuList,
+  List<OnuLocationData> savedLocations,
 ) {
   showModalBottomSheet(
     context: context,
@@ -208,6 +211,7 @@ void showOnuMarkerOptions(
                         oltId,
                         LatLng(loc.latitude, loc.longitude),
                         onuList,
+                        savedLocations,
                         onRefresh,
                         existingLocation: loc,
                       );
@@ -298,6 +302,7 @@ void showOnuMarkerOptions(
 class AssignOnuDialogWidget extends StatefulWidget {
   final LatLng point;
   final List<OnuData> onuList;
+  final List<OnuLocationData> savedLocations;
   final Function(String, String?, String?, String?, String?) onAssign;
   final OnuLocationData? existingLocation;
 
@@ -305,6 +310,7 @@ class AssignOnuDialogWidget extends StatefulWidget {
     super.key,
     required this.point,
     required this.onuList,
+    required this.savedLocations,
     required this.onAssign,
     this.existingLocation,
   });
@@ -523,6 +529,14 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
           onu.id.toLowerCase().contains(query);
     }).toList();
 
+    filteredList.sort((a, b) {
+      final aHasLoc = widget.savedLocations.any((loc) => loc.onuId == a.id);
+      final bHasLoc = widget.savedLocations.any((loc) => loc.onuId == b.id);
+      if (aHasLoc && !bHasLoc) return 1;
+      if (!aHasLoc && bHasLoc) return -1;
+      return 0; // maintain original order for same category
+    });
+
     return Container(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -576,9 +590,11 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
                     onu.macAddress,
                     style: const TextStyle(color: Colors.white54),
                   ),
-                  trailing: const Icon(
+                  trailing: Icon(
                     Icons.add_location,
-                    color: Color(0xFF6366F1),
+                    color: widget.savedLocations.any((loc) => loc.onuId == onu.id)
+                        ? Colors.grey
+                        : const Color(0xFF6366F1),
                   ),
                   onTap: () {
                     setState(() {
