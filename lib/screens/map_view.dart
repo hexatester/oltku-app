@@ -211,6 +211,7 @@ class _MapViewState extends State<MapView> {
         Marker(
           markerId: MarkerId('onu_${loc.onuId}'),
           position: LatLng(loc.latitude, loc.longitude),
+          anchor: const Offset(0.5, 0.5),
           draggable: true,
           icon: customIcon,
           onTap: () => _showMarkerOptions(onu, loc),
@@ -249,6 +250,7 @@ class _MapViewState extends State<MapView> {
         Marker(
           markerId: MarkerId('odp_${odp.id}'),
           position: LatLng(odp.latitude, odp.longitude),
+          anchor: const Offset(0.5, 0.5),
           draggable: true,
           icon: customIcon,
           onTap: () => _showOdpOptions(odp),
