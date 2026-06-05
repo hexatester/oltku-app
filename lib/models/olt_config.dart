@@ -10,6 +10,9 @@ class OltConfig {
   final String? onuIcon;
   final String? odpIcon;
   final double? markerSize;
+  final double? lastMapLatitude;
+  final double? lastMapLongitude;
+  final double? lastMapZoom;
 
   OltConfig({
     required this.id,
@@ -23,6 +26,9 @@ class OltConfig {
     this.onuIcon,
     this.odpIcon,
     this.markerSize,
+    this.lastMapLatitude,
+    this.lastMapLongitude,
+    this.lastMapZoom,
   });
 
   factory OltConfig.fromJson(Map<String, dynamic> json) {
@@ -38,6 +44,9 @@ class OltConfig {
       onuIcon: json['onuIcon'],
       odpIcon: json['odpIcon'],
       markerSize: json['markerSize']?.toDouble(),
+      lastMapLatitude: json['lastMapLatitude']?.toDouble(),
+      lastMapLongitude: json['lastMapLongitude']?.toDouble(),
+      lastMapZoom: json['lastMapZoom']?.toDouble(),
     );
   }
 
@@ -54,6 +63,9 @@ class OltConfig {
       'onuIcon': onuIcon,
       'odpIcon': odpIcon,
       'markerSize': markerSize,
+      'lastMapLatitude': lastMapLatitude,
+      'lastMapLongitude': lastMapLongitude,
+      'lastMapZoom': lastMapZoom,
     };
   }
 }

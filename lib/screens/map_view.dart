@@ -36,6 +36,7 @@ class _MapViewState extends State<MapView> {
   bool _isLoading = true;
   OltConfig? _oltConfig;
   MapType _mapType = MapType.normal;
+  CameraPosition? _lastCameraPosition;
 
   bool _isEditingCable = false;
   OnuLocationData? _editingOnuLocation;
@@ -91,7 +92,41 @@ class _MapViewState extends State<MapView> {
   Future<void> _initMap() async {
     _oltConfig = await StorageService.getOltConfig(widget.oltId);
     await _loadSavedLocations();
-    await _getCurrentLocation();
+    
+    if (_oltConfig?.lastMapLatitude != null && _oltConfig?.lastMapLongitude != null) {
+      if (mounted) {
+        setState(() {
+          _currentLocation = LatLng(_oltConfig!.lastMapLatitude!, _oltConfig!.lastMapLongitude!);
+          _isLoading = false;
+        });
+      }
+    } else {
+      await _getCurrentLocation();
+    }
+  }
+
+  Future<void> _saveCurrentMapPosition(CameraPosition position) async {
+    if (_oltConfig == null) return;
+    
+    final updatedConfig = OltConfig(
+      id: _oltConfig!.id,
+      name: _oltConfig!.name,
+      url: _oltConfig!.url,
+      username: _oltConfig!.username,
+      password: _oltConfig!.password,
+      model: _oltConfig!.model,
+      refreshTimeMinutes: _oltConfig!.refreshTimeMinutes,
+      lastRefreshTime: _oltConfig!.lastRefreshTime,
+      onuIcon: _oltConfig!.onuIcon,
+      odpIcon: _oltConfig!.odpIcon,
+      markerSize: _oltConfig!.markerSize,
+      lastMapLatitude: position.target.latitude,
+      lastMapLongitude: position.target.longitude,
+      lastMapZoom: position.zoom,
+    );
+    
+    await StorageService.saveOltConfig(updatedConfig);
+    _oltConfig = updatedConfig;
   }
 
   Future<BitmapDescriptor> _getCachedIconBitmap(
@@ -705,8 +740,16 @@ class _MapViewState extends State<MapView> {
             },
             initialCameraPosition: CameraPosition(
               target: _currentLocation ?? const LatLng(0, 0),
-              zoom: 15.0,
+              zoom: _oltConfig?.lastMapZoom ?? 15.0,
             ),
+            onCameraMove: (position) {
+              _lastCameraPosition = position;
+            },
+            onCameraIdle: () {
+              if (_lastCameraPosition != null) {
+                _saveCurrentMapPosition(_lastCameraPosition!);
+              }
+            },
             onTap: (point) {
               if (_isEditingCable) {
                 setState(() {
@@ -722,7 +765,7 @@ class _MapViewState extends State<MapView> {
             polylines: _polylines,
           ),
           Positioned(
-            top: 16,
+            bottom: 32,
             left: 16,
             child: Container(
               decoration: BoxDecoration(
