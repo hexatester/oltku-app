@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:oltku/l10n/app_localizations.dart';
 
 class CableEditOverlay extends StatelessWidget {
   final VoidCallback onCancel;
@@ -12,6 +13,8 @@ class CableEditOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Positioned(
       bottom: 40,
       left: 0,
@@ -26,9 +29,9 @@ class CableEditOverlay extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
-                'Editing Cable Route...',
-                style: TextStyle(
+              Text(
+                l10n.editingCableRoute,
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -36,9 +39,9 @@ class CableEditOverlay extends StatelessWidget {
               const SizedBox(width: 16),
               TextButton(
                 onPressed: onCancel,
-                child: const Text(
-                  'Cancel',
-                  style: TextStyle(color: Colors.redAccent),
+                child: Text(
+                  l10n.cancel,
+                  style: const TextStyle(color: Colors.redAccent),
                 ),
               ),
               ElevatedButton(
@@ -49,9 +52,9 @@ class CableEditOverlay extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                child: const Text(
-                  'Save',
-                  style: TextStyle(color: Colors.white),
+                child: Text(
+                  l10n.save,
+                  style: const TextStyle(color: Colors.white),
                 ),
               ),
             ],

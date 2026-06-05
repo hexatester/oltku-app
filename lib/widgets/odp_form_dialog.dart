@@ -4,6 +4,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:oltku/models/odp_data.dart';
 import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/models/onu_location.dart';
+import 'package:oltku/l10n/app_localizations.dart';
 
 class OdpFormDialog extends StatefulWidget {
   final String oltId;
@@ -82,9 +83,11 @@ class _OdpFormDialogState extends State<OdpFormDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return AlertDialog(
       backgroundColor: const Color(0xFF2D2A43),
-      title: Text(widget.existingOdp == null ? 'New ODP' : 'Edit ODP', style: const TextStyle(color: Colors.white)),
+      title: Text(widget.existingOdp == null ? l10n.newOdp : l10n.editOdp, style: const TextStyle(color: Colors.white)),
       content: SizedBox(
         width: double.maxFinite,
         child: Column(
@@ -94,9 +97,9 @@ class _OdpFormDialogState extends State<OdpFormDialog> {
             TextField(
               controller: _nameController,
               style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'ODP Name',
-                labelStyle: TextStyle(color: Colors.white54),
+              decoration: InputDecoration(
+                labelText: l10n.odpName,
+                labelStyle: const TextStyle(color: Colors.white54),
                 filled: true,
                 fillColor: Colors.black26,
               ),
@@ -106,9 +109,9 @@ class _OdpFormDialogState extends State<OdpFormDialog> {
               controller: _portController,
               keyboardType: TextInputType.number,
               style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Port Count (e.g. 8)',
-                labelStyle: TextStyle(color: Colors.white54),
+              decoration: InputDecoration(
+                labelText: l10n.portCountHint,
+                labelStyle: const TextStyle(color: Colors.white54),
                 filled: true,
                 fillColor: Colors.black26,
               ),
@@ -117,9 +120,9 @@ class _OdpFormDialogState extends State<OdpFormDialog> {
             TextField(
               controller: _cableNameController,
               style: const TextStyle(color: Colors.white),
-              decoration: const InputDecoration(
-                labelText: 'Cable Name / Tag (Optional)',
-                labelStyle: TextStyle(color: Colors.white54),
+              decoration: InputDecoration(
+                labelText: l10n.cableNameTagOptional,
+                labelStyle: const TextStyle(color: Colors.white54),
                 filled: true,
                 fillColor: Colors.black26,
               ),
@@ -132,9 +135,9 @@ class _OdpFormDialogState extends State<OdpFormDialog> {
                     initialValue: _selectedTubeColor,
                     dropdownColor: const Color(0xFF2D2A43),
                     style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
-                      labelText: 'Tube Color (Optional)',
-                      labelStyle: TextStyle(color: Colors.white54),
+                    decoration: InputDecoration(
+                      labelText: l10n.tubeColorOptional,
+                      labelStyle: const TextStyle(color: Colors.white54),
                       filled: true,
                       fillColor: Colors.black26,
                     ),
@@ -148,9 +151,9 @@ class _OdpFormDialogState extends State<OdpFormDialog> {
                     initialValue: _selectedCoreColor,
                     dropdownColor: const Color(0xFF2D2A43),
                     style: const TextStyle(color: Colors.white),
-                    decoration: const InputDecoration(
-                      labelText: 'Core Color (Optional)',
-                      labelStyle: TextStyle(color: Colors.white54),
+                    decoration: InputDecoration(
+                      labelText: l10n.coreColorOptional,
+                      labelStyle: const TextStyle(color: Colors.white54),
                       filled: true,
                       fillColor: Colors.black26,
                     ),
@@ -161,7 +164,7 @@ class _OdpFormDialogState extends State<OdpFormDialog> {
               ],
             ),
             const SizedBox(height: 16),
-            const Text('Assign ONUs (Sorted by nearest)', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
+            Text(l10n.assignOnusNearest, style: const TextStyle(color: Colors.white70, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Expanded(
               child: ListView.builder(
@@ -182,7 +185,7 @@ class _OdpFormDialogState extends State<OdpFormDialog> {
                       });
                     },
                     title: Text('${onuInfo['name']}', style: const TextStyle(color: Colors.white)),
-                    subtitle: Text('${(onuInfo['distance'] as num).toStringAsFixed(1)}m away', style: const TextStyle(color: Colors.white54)),
+                    subtitle: Text(l10n.distanceAway((onuInfo['distance'] as num).toStringAsFixed(1)), style: const TextStyle(color: Colors.white54)),
                     activeColor: const Color(0xFF6366F1),
                     checkColor: Colors.white,
                     side: const BorderSide(color: Colors.white54),
@@ -196,7 +199,7 @@ class _OdpFormDialogState extends State<OdpFormDialog> {
       actions: [
         TextButton(
           onPressed: () => Navigator.pop(context),
-          child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+          child: Text(l10n.cancel, style: const TextStyle(color: Colors.white70)),
         ),
         ElevatedButton(
           style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF6366F1)),
@@ -236,7 +239,7 @@ class _OdpFormDialogState extends State<OdpFormDialog> {
               widget.onSave(odp);
             }
           },
-          child: const Text('Save', style: TextStyle(color: Colors.white)),
+          child: Text(l10n.save, style: const TextStyle(color: Colors.white)),
         ),
       ],
     );

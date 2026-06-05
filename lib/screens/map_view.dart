@@ -12,6 +12,7 @@ import 'package:oltku/models/odp_data.dart';
 import 'package:oltku/services/storage_service.dart';
 import 'package:oltku/widgets/odp_form_dialog.dart';
 import 'package:oltku/models/unknown_marker_data.dart';
+import 'package:oltku/l10n/app_localizations.dart';
 
 class MapView extends StatefulWidget {
   final String oltId;
@@ -483,9 +484,9 @@ class _MapViewState extends State<MapView> {
             children: [
               ListTile(
                 leading: const Icon(Icons.add_location, color: Colors.white),
-                title: const Text(
-                  'Add Onu Marker',
-                  style: TextStyle(color: Colors.white),
+                title: Text(
+                  AppLocalizations.of(context).addOnuMarker,
+                  style: const TextStyle(color: Colors.white),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -494,9 +495,9 @@ class _MapViewState extends State<MapView> {
               ),
               ListTile(
                 leading: const Icon(Icons.device_hub, color: Colors.white),
-                title: const Text(
-                  'Add Odp Marker',
-                  style: TextStyle(color: Colors.white),
+                title: Text(
+                  AppLocalizations.of(context).addOdpMarker,
+                  style: const TextStyle(color: Colors.white),
                 ),
                 onTap: () {
                   Navigator.pop(context);
@@ -546,7 +547,7 @@ class _MapViewState extends State<MapView> {
                 ),
               ListTile(
                 leading: const Icon(Icons.router, color: Colors.blue),
-                title: const Text('Assign as ONU', style: TextStyle(color: Colors.white)),
+                title: Text(AppLocalizations.of(context).assignAsOnu, style: const TextStyle(color: Colors.white)),
                 onTap: () {
                   Navigator.pop(context);
                   showAssignOnuDialog(context, widget.oltId, LatLng(unknown.latitude, unknown.longitude), widget.onuList, _savedLocations, () async {
@@ -557,7 +558,7 @@ class _MapViewState extends State<MapView> {
               ),
               ListTile(
                 leading: const Icon(Icons.device_hub, color: Colors.purple),
-                title: const Text('Assign as ODP', style: TextStyle(color: Colors.white)),
+                title: Text(AppLocalizations.of(context).assignAsOdp, style: const TextStyle(color: Colors.white)),
                 onTap: () {
                   Navigator.pop(context);
                   showDialog(
@@ -587,7 +588,7 @@ class _MapViewState extends State<MapView> {
               ),
               ListTile(
                 leading: const Icon(Icons.delete, color: Colors.red),
-                title: const Text('Delete Marker', style: TextStyle(color: Colors.white)),
+                title: Text(AppLocalizations.of(context).deleteMarker, style: const TextStyle(color: Colors.white)),
                 onTap: () async {
                   Navigator.pop(context);
                   await StorageService.deleteUnknownMarker(unknown.id);

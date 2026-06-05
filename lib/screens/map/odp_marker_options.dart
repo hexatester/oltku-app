@@ -6,6 +6,7 @@ import 'package:oltku/models/onu_location.dart';
 import 'package:oltku/widgets/odp_form_dialog.dart';
 import 'package:oltku/services/storage_service.dart';
 import 'package:oltku/screens/map/onu_marker_options.dart'; // For the helpers
+import 'package:oltku/l10n/app_localizations.dart';
 
 void showOdpMarkerOptions(
   BuildContext context,
@@ -43,6 +44,8 @@ void showOdpMarkerOptions(
     context: context,
     backgroundColor: const Color(0xFF1E1B2E),
     builder: (context) {
+      final l10n = AppLocalizations.of(context);
+
       return Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(
@@ -62,13 +65,13 @@ void showOdpMarkerOptions(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 buildStat(
-                  'Connected ONUs',
+                  l10n.connectedOnus,
                   '${odp.onuIds.length} / ${odp.portCount}',
                   Colors.purpleAccent,
                 ),
                 buildStat(
-                  'Ports Available',
-                  isAvailable ? 'Yes ($portsAvailable)' : 'No (Full)',
+                  l10n.portsAvailable,
+                  isAvailable ? l10n.yesPorts(portsAvailable) : l10n.noFull,
                   isAvailable ? Colors.green : Colors.red,
                 ),
               ],
@@ -82,19 +85,19 @@ void showOdpMarkerOptions(
                 children: [
                   if (odp.cableName != null)
                     buildStat(
-                      'Cable Tag',
+                      l10n.cableTag,
                       odp.cableName!,
                       Colors.blueAccent,
                     ),
                   if (odp.tubeColor != null)
                     buildStat(
-                      'Tube',
+                      l10n.tube,
                       odp.tubeColor!,
                       getFiberColor(odp.tubeColor!),
                     ),
                   if (odp.coreColor != null)
                     buildStat(
-                      'Core',
+                      l10n.core,
                       odp.coreColor!,
                       getFiberColor(odp.coreColor!),
                     ),
@@ -106,17 +109,17 @@ void showOdpMarkerOptions(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 buildStat(
-                  'Avg Rx',
+                  l10n.avgRx,
                   avgRx != null ? '${avgRx.toStringAsFixed(1)} dBm' : 'N/A',
                   avgRx != null ? getRxColor('$avgRx dBm') : Colors.white,
                 ),
                 buildStat(
-                  'Best Rx',
+                  l10n.bestRx,
                   bestRx != null ? '${bestRx.toStringAsFixed(1)} dBm' : 'N/A',
                   bestRx != null ? getRxColor('$bestRx dBm') : Colors.white,
                 ),
                 buildStat(
-                  'Worst Rx',
+                  l10n.worstRx,
                   worstRx != null
                       ? '${worstRx.toStringAsFixed(1)} dBm'
                       : 'N/A',
@@ -152,9 +155,9 @@ void showOdpMarkerOptions(
                       );
                     },
                     icon: const Icon(Icons.edit, color: Colors.white),
-                    label: const Text(
-                      'Edit',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.edit,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
@@ -177,9 +180,9 @@ void showOdpMarkerOptions(
                       if (context.mounted) Navigator.pop(context);
                     },
                     icon: const Icon(Icons.delete, color: Colors.white),
-                    label: const Text(
-                      'Delete',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.delete,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),

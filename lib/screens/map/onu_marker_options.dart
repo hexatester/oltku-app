@@ -4,6 +4,7 @@ import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/models/onu_location.dart';
 import 'package:oltku/models/odp_data.dart';
 import 'package:oltku/services/storage_service.dart';
+import 'package:oltku/l10n/app_localizations.dart';
 
 Widget buildStat(String label, String value, Color valueColor) {
   return Column(
@@ -124,6 +125,8 @@ void showOnuMarkerOptions(
     context: context,
     backgroundColor: const Color(0xFF1E1B2E),
     builder: (context) {
+      final l10n = AppLocalizations.of(context);
+      
       final isOnline = onu.status == "Up";
       final statusColor = isOnline
           ? const Color(0xFF10B981)
@@ -157,13 +160,13 @@ void showOnuMarkerOptions(
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                buildStat('Status', onu.status, statusColor),
+                buildStat(l10n.status, onu.status, statusColor),
                 buildStat(
-                  'Rx Power',
+                  l10n.rxPower,
                   '${onu.rxPower} dBm',
                   getRxColor(onu.rxPower, isOnline: isOnline),
                 ),
-                buildStat('Distance', '${onu.distance} m', Colors.white),
+                buildStat(l10n.distance, '${onu.distance} m', Colors.white),
               ],
             ),
             const SizedBox(height: 12),
@@ -177,21 +180,21 @@ void showOnuMarkerOptions(
                 children: [
                   if (loc.cableName != null)
                     buildStat(
-                      'Cable Tag',
+                      l10n.cableTag,
                       loc.cableName!,
                       Colors.blueAccent,
                     ),
                   if (loc.cableLength != null)
-                    buildStat('Length', '${loc.cableLength}m', Colors.white),
+                    buildStat(l10n.length, '${loc.cableLength}m', Colors.white),
                   if (loc.tubeColor != null)
                     buildStat(
-                      'Tube',
+                      l10n.tube,
                       loc.tubeColor!,
                       getFiberColor(loc.tubeColor!),
                     ),
                   if (loc.coreColor != null)
                     buildStat(
-                      'Core',
+                      l10n.core,
                       loc.coreColor!,
                       getFiberColor(loc.coreColor!),
                     ),
@@ -217,9 +220,9 @@ void showOnuMarkerOptions(
                       );
                     },
                     icon: const Icon(Icons.edit, color: Colors.white),
-                    label: const Text(
-                      'Edit Marker',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.editMarker,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
@@ -247,9 +250,9 @@ void showOnuMarkerOptions(
                       }
                     },
                     icon: const Icon(Icons.delete, color: Colors.white),
-                    label: const Text(
-                      'Delete',
-                      style: TextStyle(
+                    label: Text(
+                      l10n.delete,
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,
                       ),
@@ -275,9 +278,9 @@ void showOnuMarkerOptions(
                     onEditCable(loc);
                   },
                   icon: const Icon(Icons.route, color: Colors.white),
-                  label: const Text(
-                    'Edit Cable Route',
-                    style: TextStyle(
+                  label: Text(
+                    l10n.editCableRoute,
+                    style: const TextStyle(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
                     ),
@@ -366,6 +369,8 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     if (_selectedOnuId != null) {
       final onu = widget.onuList.firstWhere((o) => o.id == _selectedOnuId!);
       return Container(
@@ -375,7 +380,7 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Text(
-                'Details for ${onu.name}',
+                l10n.detailsFor(onu.name),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -387,7 +392,7 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
                 controller: _cableNameController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  labelText: 'Cable Name (Optional)',
+                  labelText: l10n.cableNameOptional,
                   labelStyle: const TextStyle(color: Colors.white54),
                   filled: true,
                   fillColor: Colors.black26,
@@ -402,7 +407,7 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
                 controller: _cableLengthController,
                 style: const TextStyle(color: Colors.white),
                 decoration: InputDecoration(
-                  labelText: 'Cable Length in meters (Optional)',
+                  labelText: l10n.cableLengthOptional,
                   labelStyle: const TextStyle(color: Colors.white54),
                   filled: true,
                   fillColor: Colors.black26,
@@ -422,7 +427,7 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
                       dropdownColor: const Color(0xFF2D2A43),
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        labelText: 'Tube Color (Optional)',
+                        labelText: l10n.tubeColorOptional,
                         labelStyle: const TextStyle(color: Colors.white54),
                         filled: true,
                         fillColor: Colors.black26,
@@ -451,7 +456,7 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
                       dropdownColor: const Color(0xFF2D2A43),
                       style: const TextStyle(color: Colors.white),
                       decoration: InputDecoration(
-                        labelText: 'Core Color (Optional)',
+                        labelText: l10n.coreColorOptional,
                         labelStyle: const TextStyle(color: Colors.white54),
                         filled: true,
                         fillColor: Colors.black26,
@@ -487,7 +492,7 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
                       }
                     },
                     child: Text(
-                      widget.existingLocation != null ? 'Cancel' : 'Back',
+                      widget.existingLocation != null ? l10n.cancel : l10n.back,
                       style: const TextStyle(color: Colors.white70),
                     ),
                   ),
@@ -509,9 +514,9 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF6366F1),
                     ),
-                    child: const Text(
-                      'Save',
-                      style: TextStyle(color: Colors.white),
+                    child: Text(
+                      l10n.save,
+                      style: const TextStyle(color: Colors.white),
                     ),
                   ),
                 ],
@@ -542,9 +547,9 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Assign Location to ONU',
-            style: TextStyle(
+          Text(
+            l10n.assignLocationToOnu,
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
               color: Colors.white,
@@ -559,7 +564,7 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
           TextField(
             style: const TextStyle(color: Colors.white),
             decoration: InputDecoration(
-              hintText: 'Search ONU...',
+              hintText: l10n.searchOnu,
               hintStyle: const TextStyle(color: Colors.white54),
               prefixIcon: const Icon(Icons.search, color: Colors.white54),
               filled: true,

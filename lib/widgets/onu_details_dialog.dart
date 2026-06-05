@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:oltku/models/onu_data.dart';
+import 'package:flutter/material.dart';
+import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/services/olt_service.dart';
+import 'package:oltku/l10n/app_localizations.dart';
 
 /// A dialog showing all 20 stats of the selected ONU, fetched dynamically from OLT configuration endpoint.
 class OnuDetailsDialog extends StatefulWidget {
@@ -28,21 +31,22 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
   bool _isRebooting = false;
 
   Future<void> _handleReboot(OnuData onu) async {
+    final l10n = AppLocalizations.of(context);
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1E1B2E),
-        title: const Text('Reboot ONU?', style: TextStyle(color: Colors.white)),
+        title: Text(l10n.rebootOnuTitle, style: const TextStyle(color: Colors.white)),
         content: Text(
-          'Are you sure you want to reboot ${onu.name} (${onu.id})?',
+          l10n.confirmReboot(onu.name, onu.id),
           style: const TextStyle(color: Colors.white70),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text(
-              'Cancel',
-              style: TextStyle(color: Colors.white54),
+            child: Text(
+              l10n.cancel,
+              style: const TextStyle(color: Colors.white54),
             ),
           ),
           ElevatedButton(
@@ -50,7 +54,7 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),
             ),
-            child: const Text('Reboot', style: TextStyle(color: Colors.white)),
+            child: Text(l10n.reboot, style: const TextStyle(color: Colors.white)),
           ),
         ],
       ),
@@ -69,8 +73,8 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
       );
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('ONU Reboot command sent successfully'),
+          SnackBar(
+            content: Text(l10n.rebootSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -80,7 +84,7 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to reboot: $e'),
+            content: Text(l10n.rebootFailed(e.toString())),
             backgroundColor: Colors.red,
           ),
         );
@@ -104,6 +108,8 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    
     return Dialog(
       backgroundColor: const Color(0xFF1E1B2E),
       shape: RoundedRectangleBorder(
@@ -117,17 +123,17 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
           future: _configFuture,
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
-              return const SizedBox(
+              return SizedBox(
                 height: 300,
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      CircularProgressIndicator(),
-                      SizedBox(height: 20),
+                      const CircularProgressIndicator(),
+                      const SizedBox(height: 20),
                       Text(
-                        'Fetching detailed ONU stats...',
-                        style: TextStyle(color: Colors.white70, fontSize: 14),
+                        l10n.fetchingOnuStats,
+                        style: const TextStyle(color: Colors.white70, fontSize: 14),
                       ),
                     ],
                   ),
@@ -150,7 +156,7 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Failed to load details:\n${snapshot.error}',
+                        l10n.loadDetailsFailed(snapshot.error.toString()),
                         textAlign: TextAlign.center,
                         style: const TextStyle(color: Colors.white70),
                       ),
@@ -161,7 +167,7 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
                           backgroundColor: const Color(0xFF6366F1),
                           foregroundColor: Colors.white,
                         ),
-                        child: const Text('Close'),
+                        child: Text(l10n.close),
                       ),
                     ],
                   ),
@@ -242,79 +248,79 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _buildSectionHeader('Connection Health'),
+                        _buildSectionHeader(l10n.connectionHealth),
                         _buildDetailsGrid([
                           _buildDetailItem(
-                            'Status',
+                            l10n.status,
                             onu.status,
                             Icons.info_outline,
                             valueColor: statusColor,
                           ),
                           _buildDetailItem(
-                            'Rx Power',
+                            l10n.rxPower,
                             '${onu.rxPower} dBm',
                             Icons.settings_input_antenna,
                             valueColor: const Color(0xFF06B6D4),
                           ),
                           _buildDetailItem(
-                            'Tx Power',
+                            l10n.txPower,
                             '${onu.txPower} dBm',
                             Icons.settings_input_antenna,
                           ),
                           _buildDetailItem(
-                            'Temperature',
+                            l10n.temperature,
                             '${onu.temperature} °C',
                             Icons.thermostat,
                           ),
                           _buildDetailItem(
-                            'Voltage',
+                            l10n.voltage,
                             onu.voltage != "--" ? '${onu.voltage} V' : '--',
                             Icons.flash_on,
                           ),
                           _buildDetailItem(
-                            'Bias Current',
+                            l10n.biasCurrent,
                             onu.biasCurrent != "--"
                                 ? '${onu.biasCurrent} mA'
                                 : '--',
                             Icons.waves,
                           ),
                           _buildDetailItem(
-                            'Distance',
+                            l10n.distance,
                             '${onu.distance} m',
                             Icons.straighten,
                           ),
-                          _buildDetailItem('RTT', onu.rtt, Icons.timer),
+                          _buildDetailItem(l10n.rtt, onu.rtt, Icons.timer),
                         ]),
                         const SizedBox(height: 20),
-                        _buildSectionHeader('Time & Activity'),
+                        _buildSectionHeader(l10n.timeAndActivity),
                         _buildDetailsGrid([
                           _buildDetailItem(
-                            'Uptime',
+                            l10n.uptime,
                             onu.uptime,
                             Icons.hourglass_empty,
                           ),
                           _buildDetailItem(
-                            'Deregisters',
+                            l10n.deregisters,
                             onu.deregisterCnt,
                             Icons.refresh,
                           ),
                           _buildDetailItem(
-                            'First UpTime',
+                            l10n.firstUpTime,
                             onu.firstUpTime,
                             Icons.calendar_today,
                           ),
                           _buildDetailItem(
-                            'Online Time',
+                            l10n.onlineTime,
                             onu.onlineTime,
                             Icons.login,
                           ),
                           _buildDetailItem(
-                            'Offline Time',
+                            l10n.offlineTime,
                             onu.offlineTime,
                             Icons.logout,
                           ),
                           _buildDetailItem(
-                            'Offline Reason',
+                            l10n.offlineReason,
                             onu.offlineReason,
                             Icons.warning_amber_rounded,
                             valueColor: onu.offlineReason == "Dying_gasp"
@@ -323,31 +329,31 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
                           ),
                         ]),
                         const SizedBox(height: 20),
-                        _buildSectionHeader('Hardware & CTC Configuration'),
+                        _buildSectionHeader(l10n.hardwareCtcConfig),
                         _buildDetailsGrid([
                           _buildDetailItem(
-                            'FW Version',
+                            l10n.fwVersion,
                             onu.fwVersion,
                             Icons.code,
                           ),
-                          _buildDetailItem('Chip ID', onu.chipId, Icons.memory),
+                          _buildDetailItem(l10n.chipId, onu.chipId, Icons.memory),
                           _buildDetailItem(
-                            'Ports',
+                            l10n.ports,
                             onu.ports,
                             Icons.settings_ethernet,
                           ),
                           _buildDetailItem(
-                            'CTC Status',
+                            l10n.ctcStatus,
                             onu.ctcStatus,
                             Icons.sync,
                           ),
                           _buildDetailItem(
-                            'CTC Version',
+                            l10n.ctcVersion,
                             onu.ctcVer,
                             Icons.category,
                           ),
                           _buildDetailItem(
-                            'Activation',
+                            l10n.activation,
                             onu.activate,
                             Icons.check_circle_outline,
                           ),
@@ -387,7 +393,7 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
                                 ),
                               )
                             : const Icon(Icons.restart_alt, size: 18),
-                        label: Text(_isRebooting ? 'Rebooting...' : 'Reboot'),
+                        label: Text(_isRebooting ? l10n.rebooting : l10n.reboot),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(
                             0xFFEF4444,
@@ -406,9 +412,9 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
                         style: TextButton.styleFrom(
                           foregroundColor: const Color(0xFF6366F1),
                         ),
-                        child: const Text(
-                          'Close Details',
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        child: Text(
+                          l10n.closeDetails,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ],
