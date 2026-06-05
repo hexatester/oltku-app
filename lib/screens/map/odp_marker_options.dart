@@ -40,14 +40,16 @@ void showOdpMarkerOptions(
   final portsAvailable = odp.portCount - odp.onuIds.length;
   final isAvailable = portsAvailable > 0;
 
-  showModalBottomSheet(
+  showDialog(
     context: context,
-    backgroundColor: const Color(0xFF1E1B2E),
     builder: (context) {
       final l10n = AppLocalizations.of(context);
 
-      return Padding(
-        padding: const EdgeInsets.all(24.0),
+      return Dialog(
+        backgroundColor: const Color(0xFF1E1B2E),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -199,6 +201,7 @@ void showOdpMarkerOptions(
               ],
             ),
           ],
+        ),
         ),
       );
     },
