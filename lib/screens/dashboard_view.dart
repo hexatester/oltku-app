@@ -3,17 +3,22 @@ import 'package:oltku/l10n/app_localizations.dart';
 import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/services/olt_service.dart';
 import 'package:oltku/screens/kmz_import_export_view.dart';
+import 'package:oltku/screens/activation_view.dart';
 
 class DashboardView extends StatelessWidget {
   final List<OnuData> onuList;
   final Function(String) onCardTapped;
   final String oltId;
+  final String oltModel;
+  final String? oltSubmodel;
 
   const DashboardView({
     super.key,
     required this.onuList,
     required this.onCardTapped,
     required this.oltId,
+    required this.oltModel,
+    this.oltSubmodel,
   });
 
   @override
@@ -175,6 +180,69 @@ class DashboardView extends StatelessWidget {
             },
           ),
           const SizedBox(height: 24),
+          // Activate ONU Card
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ActivationView(
+                    oltModel: oltModel,
+                    oltSubmodel: oltSubmodel,
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF0891B2), Color(0xFF06B6D4)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF06B6D4).withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.add_circle_outline, size: 40, color: Colors.white),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'Activate ONU',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Register and provision a new ONU device on this OLT.',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
           // KMZ Import/Export Card
           GestureDetector(
             onTap: () {

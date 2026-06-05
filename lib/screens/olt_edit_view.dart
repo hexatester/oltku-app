@@ -15,7 +15,7 @@ class OltEditView extends StatefulWidget {
 class _OltEditViewState extends State<OltEditView> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
-  final _urlController = TextEditingController(text: 'http://192.168.1.100');
+  final _urlController = TextEditingController(text: 'http://192.168.0.88');
   final _usernameController = TextEditingController(text: 'admin');
   final _passwordController = TextEditingController(text: 'admin');
   final _refreshTimeController = TextEditingController(text: '1');
@@ -23,7 +23,13 @@ class _OltEditViewState extends State<OltEditView> {
   bool _isLoading = false;
   final List<String> _oltModels = ['Hioso'];
   String _selectedOltModel = 'Hioso';
-  
+
+  // Submodels per OLT model
+  final Map<String, List<String>> _submodelOptions = const {
+    'Hioso': ['HA7304', 'HA7302CST'],
+  };
+  String? _selectedSubmodel = 'HA7304';
+
   final Map<String, IconData> _availableIcons = {
     'router': Icons.router,
     'device_hub': Icons.device_hub,
@@ -36,7 +42,7 @@ class _OltEditViewState extends State<OltEditView> {
     'account_tree': Icons.account_tree,
     'location_on': Icons.location_on,
   };
-  
+
   String _selectedOnuIcon = 'router';
   String _selectedOdpIcon = 'device_hub';
   double _markerSize = 100.0;
@@ -49,14 +55,23 @@ class _OltEditViewState extends State<OltEditView> {
       _urlController.text = widget.existingConfig!.url;
       _usernameController.text = widget.existingConfig!.username;
       _passwordController.text = widget.existingConfig!.password;
-      _refreshTimeController.text = widget.existingConfig!.refreshTimeMinutes.toString();
+      _refreshTimeController.text = widget.existingConfig!.refreshTimeMinutes
+          .toString();
       if (_oltModels.contains(widget.existingConfig!.model)) {
         _selectedOltModel = widget.existingConfig!.model;
       }
-      if (widget.existingConfig!.onuIcon != null && _availableIcons.containsKey(widget.existingConfig!.onuIcon)) {
+      final submodels = _submodelOptions[_selectedOltModel] ?? [];
+      if (submodels.contains(widget.existingConfig!.submodel)) {
+        _selectedSubmodel = widget.existingConfig!.submodel;
+      } else if (submodels.isNotEmpty) {
+        _selectedSubmodel = submodels.first;
+      }
+      if (widget.existingConfig!.onuIcon != null &&
+          _availableIcons.containsKey(widget.existingConfig!.onuIcon)) {
         _selectedOnuIcon = widget.existingConfig!.onuIcon!;
       }
-      if (widget.existingConfig!.odpIcon != null && _availableIcons.containsKey(widget.existingConfig!.odpIcon)) {
+      if (widget.existingConfig!.odpIcon != null &&
+          _availableIcons.containsKey(widget.existingConfig!.odpIcon)) {
         _selectedOdpIcon = widget.existingConfig!.odpIcon!;
       }
       if (widget.existingConfig!.markerSize != null) {
@@ -101,7 +116,9 @@ class _OltEditViewState extends State<OltEditView> {
         username: _usernameController.text.trim(),
         password: _passwordController.text.trim(),
         model: _selectedOltModel,
-        refreshTimeMinutes: int.tryParse(_refreshTimeController.text.trim()) ?? 1,
+        submodel: _selectedSubmodel,
+        refreshTimeMinutes:
+            int.tryParse(_refreshTimeController.text.trim()) ?? 1,
         lastRefreshTime: widget.existingConfig?.lastRefreshTime,
         onuIcon: _selectedOnuIcon,
         odpIcon: _selectedOdpIcon,
@@ -248,7 +265,9 @@ class _OltEditViewState extends State<OltEditView> {
                             TextFormField(
                               controller: _nameController,
                               decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context).oltNameLabel,
+                                labelText: AppLocalizations.of(
+                                  context,
+                                ).oltNameLabel,
                                 prefixIcon: const Icon(
                                   Icons.label_outline,
                                   color: Color(0xFF06B6D4),
@@ -277,7 +296,9 @@ class _OltEditViewState extends State<OltEditView> {
                               initialValue: _selectedOltModel,
                               dropdownColor: const Color(0xFF1E1B2E),
                               decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context).oltModelLabel,
+                                labelText: AppLocalizations.of(
+                                  context,
+                                ).oltModelLabel,
                                 prefixIcon: const Icon(
                                   Icons.settings,
                                   color: Color(0xFF06B6D4),
@@ -309,16 +330,71 @@ class _OltEditViewState extends State<OltEditView> {
                                 if (newValue != null) {
                                   setState(() {
                                     _selectedOltModel = newValue;
+                                    final subs =
+                                        _submodelOptions[newValue] ?? [];
+                                    _selectedSubmodel =
+                                        subs.isNotEmpty ? subs.first : null;
                                   });
                                 }
                               },
                             ),
+                            // Submodel dropdown (only when submodel options exist)
+                            if ((_submodelOptions[_selectedOltModel] ?? []).isNotEmpty) ...[  
+                              const SizedBox(height: 20),
+                              DropdownButtonFormField<String>(
+                                initialValue: _selectedSubmodel,
+                                dropdownColor: const Color(0xFF1E1B2E),
+                                decoration: InputDecoration(
+                                  labelText: 'Submodel',
+                                  prefixIcon: const Icon(
+                                    Icons.developer_board,
+                                    color: Color(0xFF06B6D4),
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide(
+                                      color: Colors.white.withValues(
+                                        alpha: 0.2,
+                                      ),
+                                    ),
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(
+                                      color: Color(0xFF6366F1),
+                                      width: 2,
+                                    ),
+                                  ),
+                                ),
+                                items:
+                                    (_submodelOptions[_selectedOltModel] ?? [])
+                                        .map(
+                                          (s) => DropdownMenuItem<String>(
+                                            value: s,
+                                            child: Text(s),
+                                          ),
+                                        )
+                                        .toList(),
+                                onChanged: (String? newValue) {
+                                  if (newValue != null) {
+                                    setState(() {
+                                      _selectedSubmodel = newValue;
+                                    });
+                                  }
+                                },
+                              ),
+                            ],
                             const SizedBox(height: 20),
                             // HTTP URL
                             TextFormField(
                               controller: _urlController,
                               decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context).oltAddressLabel,
+                                labelText: AppLocalizations.of(
+                                  context,
+                                ).oltAddressLabel,
                                 prefixIcon: const Icon(
                                   Icons.link,
                                   color: Color(0xFF06B6D4),
@@ -342,7 +418,9 @@ class _OltEditViewState extends State<OltEditView> {
                               ),
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return AppLocalizations.of(context).validatorAddress;
+                                  return AppLocalizations.of(
+                                    context,
+                                  ).validatorAddress;
                                 }
                                 return null;
                               },
@@ -352,7 +430,9 @@ class _OltEditViewState extends State<OltEditView> {
                             TextFormField(
                               controller: _usernameController,
                               decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context).usernameLabel,
+                                labelText: AppLocalizations.of(
+                                  context,
+                                ).usernameLabel,
                                 prefixIcon: const Icon(
                                   Icons.person_outline,
                                   color: Color(0xFF06B6D4),
@@ -376,7 +456,9 @@ class _OltEditViewState extends State<OltEditView> {
                               ),
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return AppLocalizations.of(context).validatorUsername;
+                                  return AppLocalizations.of(
+                                    context,
+                                  ).validatorUsername;
                                 }
                                 return null;
                               },
@@ -387,7 +469,9 @@ class _OltEditViewState extends State<OltEditView> {
                               controller: _passwordController,
                               obscureText: _obscurePassword,
                               decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context).passwordLabel,
+                                labelText: AppLocalizations.of(
+                                  context,
+                                ).passwordLabel,
                                 prefixIcon: const Icon(
                                   Icons.lock_outline,
                                   color: Color(0xFF06B6D4),
@@ -424,7 +508,9 @@ class _OltEditViewState extends State<OltEditView> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return AppLocalizations.of(context).validatorPassword;
+                                  return AppLocalizations.of(
+                                    context,
+                                  ).validatorPassword;
                                 }
                                 return null;
                               },
@@ -435,7 +521,9 @@ class _OltEditViewState extends State<OltEditView> {
                               controller: _refreshTimeController,
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context).refreshTimeLabel,
+                                labelText: AppLocalizations.of(
+                                  context,
+                                ).refreshTimeLabel,
                                 prefixIcon: const Icon(
                                   Icons.timer,
                                   color: Color(0xFF06B6D4),
@@ -459,10 +547,15 @@ class _OltEditViewState extends State<OltEditView> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return AppLocalizations.of(context).validatorRefreshEmpty;
+                                  return AppLocalizations.of(
+                                    context,
+                                  ).validatorRefreshEmpty;
                                 }
-                                if (int.tryParse(value) == null || int.parse(value) < 1) {
-                                  return AppLocalizations.of(context).validatorRefreshMin;
+                                if (int.tryParse(value) == null ||
+                                    int.parse(value) < 1) {
+                                  return AppLocalizations.of(
+                                    context,
+                                  ).validatorRefreshMin;
                                 }
                                 return null;
                               },
@@ -473,7 +566,9 @@ class _OltEditViewState extends State<OltEditView> {
                               initialValue: _selectedOnuIcon,
                               dropdownColor: const Color(0xFF1E1B2E),
                               decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context).onuIconLabel,
+                                labelText: AppLocalizations.of(
+                                  context,
+                                ).onuIconLabel,
                                 prefixIcon: Icon(
                                   _availableIcons[_selectedOnuIcon],
                                   color: const Color(0xFF06B6D4),
@@ -521,7 +616,9 @@ class _OltEditViewState extends State<OltEditView> {
                               initialValue: _selectedOdpIcon,
                               dropdownColor: const Color(0xFF1E1B2E),
                               decoration: InputDecoration(
-                                labelText: AppLocalizations.of(context).odpIconLabel,
+                                labelText: AppLocalizations.of(
+                                  context,
+                                ).odpIconLabel,
                                 prefixIcon: Icon(
                                   _availableIcons[_selectedOdpIcon],
                                   color: const Color(0xFF06B6D4),
@@ -569,7 +666,9 @@ class _OltEditViewState extends State<OltEditView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  AppLocalizations.of(context).markerSizeLabel(_markerSize.toInt()),
+                                  AppLocalizations.of(
+                                    context,
+                                  ).markerSizeLabel(_markerSize.toInt()),
                                   style: const TextStyle(color: Colors.white70),
                                 ),
                                 Slider(

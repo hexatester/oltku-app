@@ -9,6 +9,7 @@ class OltService {
   /// Fetches the stats HTML page from OLT and falls back to cache
   static Future<List<OnuData>> fetchOnuList({
     required String model,
+    String? submodel,
     required String url,
     required String username,
     required String password,
@@ -21,6 +22,7 @@ class OltService {
           url: url,
           username: username,
           password: password,
+          submodel: submodel,
         );
       } else {
         throw Exception('Unsupported OLT model: $model');
@@ -44,6 +46,7 @@ class OltService {
   /// Fetches detailed config and optical parameters for a specific ONU
   static Future<OnuData> getOnuDetail({
     required String model,
+    String? submodel,
     required OnuData original,
     required String url,
     required String username,
@@ -63,6 +66,7 @@ class OltService {
   /// Reboots the specified ONU
   static Future<bool> rebootOnu({
     required String model,
+    String? submodel,
     required OnuData onu,
     required String url,
     required String username,

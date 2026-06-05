@@ -10,6 +10,7 @@ class OnuListView extends StatefulWidget {
   final String username;
   final String password;
   final String oltModel;
+  final String? oltSubmodel;
   final String currentFilter;
   final ValueChanged<String> onFilterChanged;
   final String oltId;
@@ -22,6 +23,7 @@ class OnuListView extends StatefulWidget {
     required this.username,
     required this.password,
     required this.oltModel,
+    this.oltSubmodel,
     required this.currentFilter,
     required this.onFilterChanged,
     required this.oltId,
@@ -198,6 +200,7 @@ class _OnuListViewState extends State<OnuListView> {
         username: widget.username,
         password: widget.password,
         oltModel: widget.oltModel,
+        oltSubmodel: widget.oltSubmodel,
         oltId: widget.oltId,
         onLocate: widget.onLocateOnu,
       ),

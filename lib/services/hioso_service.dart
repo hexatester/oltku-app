@@ -4,8 +4,13 @@ import 'package:oltku/models/onu_data.dart';
 
 /// Unified Hioso OLT service supporting both HA7304 (22-field) and
 /// HA7302CST (18-field) response formats.
-/// The format is detected automatically from the raw JS array content.
+///
+/// Pass [submodel] = 'HA7304' or 'HA7302CST' for an explicit stride;
+/// omit it to fall back to auto-detection from element count.
 class HiosoService {
+  static const String submodelHa7304 = 'HA7304';
+  static const String submodelHa7302cst = 'HA7302CST';
+  static const List<String> submodels = [submodelHa7304, submodelHa7302cst];
   // ---------------------------------------------------------------------------
   // HTTP helpers
   // ---------------------------------------------------------------------------
@@ -141,8 +146,11 @@ class HiosoService {
   }
 
   /// Parses the ONU list HTML page.
-  /// Tries the 22-field HA7304 format first; falls back to 18-field HA7302CST.
-  static List<OnuData> parseOnuHtml(String html) {
+  ///
+  /// [submodel] can be 'HA7304' (22-field) or 'HA7302CST' (18-field) to
+  /// force a specific stride. When null, the stride is auto-detected from the
+  /// element count.
+  static List<OnuData> parseOnuHtml(String html, {String? submodel}) {
     final arrayRegex = RegExp(
       r'var\s+onutable\s*=\s*new\s+Array\s*\([\s\S]*?\);',
     );
@@ -157,11 +165,16 @@ class HiosoService {
       throw Exception('No ONU data elements found in JS array.');
     }
 
-    // Determine stride: prefer 22 (HA7304) if it divides evenly, else 18.
     const int stride22 = 22;
     const int stride18 = 18;
+
+    // Use explicit submodel hint when available.
     final int stride;
-    if (rawValues.length % stride22 == 0) {
+    if (submodel == submodelHa7304) {
+      stride = stride22;
+    } else if (submodel == submodelHa7302cst) {
+      stride = stride18;
+    } else if (rawValues.length % stride22 == 0) {
       stride = stride22;
     } else if (rawValues.length % stride18 == 0) {
       stride = stride18;
@@ -195,6 +208,7 @@ class HiosoService {
     required String url,
     required String username,
     required String password,
+    String? submodel,
   }) async {
     final fullUrl = _normalizeUrl(url);
     final uri = Uri.parse('$fullUrl/onuAllPonOnuList.asp');
@@ -202,7 +216,7 @@ class HiosoService {
 
     final response = await _getWithAuth(uri, auth);
     if (response.statusCode == 200) {
-      return parseOnuHtml(response.body);
+      return parseOnuHtml(response.body, submodel: submodel);
     } else if (response.statusCode == 401) {
       throw Exception('Unauthorized (401). Check username & password.');
     } else {

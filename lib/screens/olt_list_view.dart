@@ -65,6 +65,7 @@ class _OltListViewState extends State<OltListView> {
       } else {
         onus = await OltService.fetchOnuList(
           model: config.model,
+          submodel: config.submodel,
           url: fullUrl,
           username: config.username,
           password: config.password,
@@ -79,6 +80,7 @@ class _OltListViewState extends State<OltListView> {
           username: config.username,
           password: config.password,
           model: config.model,
+          submodel: config.submodel,
           refreshTimeMinutes: config.refreshTimeMinutes,
           lastRefreshTime: now,
         );
@@ -96,6 +98,7 @@ class _OltListViewState extends State<OltListView> {
               password: config.password,
               oltUrl: fullUrl,
               oltModel: config.model,
+              oltSubmodel: config.submodel,
               oltId: config.id,
             ),
           ),
@@ -277,8 +280,14 @@ class _OltListViewState extends State<OltListView> {
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(
-                                        config.model,
-                                        style: const TextStyle(color: Color(0xFF06B6D4), fontSize: 10, fontWeight: FontWeight.bold),
+                                        config.submodel != null
+                                            ? '${config.model} · ${config.submodel}'
+                                            : config.model,
+                                        style: const TextStyle(
+                                          color: Color(0xFF06B6D4),
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.bold,
+                                        ),
                                       ),
                                     )
                                   ],

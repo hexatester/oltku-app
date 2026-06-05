@@ -16,6 +16,7 @@ class MainLayout extends StatefulWidget {
   final String password;
   final String oltUrl;
   final String oltModel;
+  final String? oltSubmodel;
   final String oltId;
 
   const MainLayout({
@@ -25,6 +26,7 @@ class MainLayout extends StatefulWidget {
     required this.password,
     required this.oltUrl,
     required this.oltModel,
+    this.oltSubmodel,
     required this.oltId,
   });
 
@@ -54,6 +56,7 @@ class _MainLayoutState extends State<MainLayout> {
       List<OnuData> refreshed;
       refreshed = await OltService.fetchOnuList(
         model: widget.oltModel,
+        submodel: widget.oltSubmodel,
         url: widget.oltUrl,
         username: widget.username,
         password: widget.password,
@@ -78,6 +81,7 @@ class _MainLayoutState extends State<MainLayout> {
           username: config.username,
           password: config.password,
           model: config.model,
+          submodel: config.submodel,
           refreshTimeMinutes: config.refreshTimeMinutes,
           lastRefreshTime: DateTime.now().millisecondsSinceEpoch,
         );
@@ -217,6 +221,8 @@ class _MainLayoutState extends State<MainLayout> {
                 DashboardView(
                   onuList: _fullList,
                   oltId: widget.oltId,
+                  oltModel: widget.oltModel,
+                  oltSubmodel: widget.oltSubmodel,
                   onCardTapped: (filter) {
                     setState(() {
                       _currentFilter = filter;
@@ -230,6 +236,7 @@ class _MainLayoutState extends State<MainLayout> {
                   username: widget.username,
                   password: widget.password,
                   oltModel: widget.oltModel,
+                  oltSubmodel: widget.oltSubmodel,
                   currentFilter: _currentFilter,
                   oltId: widget.oltId,
                   onFilterChanged: (filter) {

@@ -12,6 +12,7 @@ class OnuDetailsDialog extends StatefulWidget {
   final String username;
   final String password;
   final String oltModel;
+  final String? oltSubmodel;
   final String oltId;
   final ValueChanged<OnuLocationData>? onLocate;
 
@@ -22,6 +23,7 @@ class OnuDetailsDialog extends StatefulWidget {
     required this.username,
     required this.password,
     required this.oltModel,
+    this.oltSubmodel,
     required this.oltId,
     this.onLocate,
   });
@@ -77,6 +79,7 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
     try {
       await OltService.rebootOnu(
         model: widget.oltModel,
+        submodel: widget.oltSubmodel,
         onu: onu,
         url: widget.url,
         username: widget.username,
@@ -110,6 +113,7 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
     super.initState();
     _configFuture = OltService.getOnuDetail(
       model: widget.oltModel,
+      submodel: widget.oltSubmodel,
       original: widget.onu,
       url: widget.url,
       username: widget.username,

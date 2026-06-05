@@ -5,6 +5,7 @@ class OltConfig {
   final String username;
   final String password;
   final String model;
+  final String? submodel;
   final int refreshTimeMinutes;
   final int? lastRefreshTime;
   final String? onuIcon;
@@ -21,6 +22,7 @@ class OltConfig {
     required this.username,
     required this.password,
     required this.model,
+    this.submodel,
     this.refreshTimeMinutes = 1,
     this.lastRefreshTime,
     this.onuIcon,
@@ -39,6 +41,7 @@ class OltConfig {
       username: json['username'] ?? '',
       password: json['password'] ?? '',
       model: json['model'] ?? '',
+      submodel: json['submodel'],
       refreshTimeMinutes: json['refreshTimeMinutes'] ?? 1,
       lastRefreshTime: json['lastRefreshTime'],
       onuIcon: json['onuIcon'],
@@ -58,6 +61,7 @@ class OltConfig {
       'username': username,
       'password': password,
       'model': model,
+      'submodel': submodel,
       'refreshTimeMinutes': refreshTimeMinutes,
       'lastRefreshTime': lastRefreshTime,
       'onuIcon': onuIcon,
