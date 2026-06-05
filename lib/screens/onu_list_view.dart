@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:oltku/l10n/app_localizations.dart';
 import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/widgets/onu_details_dialog.dart';
 
@@ -197,6 +198,7 @@ class _OnuListViewState extends State<OnuListView> {
   }
 
   Widget _buildFilterTabs() {
+    final l10n = AppLocalizations.of(context);
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withValues(alpha: 0.04),
@@ -209,21 +211,21 @@ class _OnuListViewState extends State<OnuListView> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            _buildFilterChip('All'),
-            _buildFilterChip('Online'),
-            _buildFilterChip('Offline'),
-            _buildFilterChip('Bad Rx'),
+            _buildFilterChip('All', l10n.filterAll),
+            _buildFilterChip('Online', l10n.filterOnline),
+            _buildFilterChip('Offline', l10n.filterOffline),
+            _buildFilterChip('Bad Rx', l10n.filterBadRx),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildFilterChip(String label) {
-    final isSelected = widget.currentFilter == label;
+  Widget _buildFilterChip(String filterValue, String label) {
+    final isSelected = widget.currentFilter == filterValue;
     return GestureDetector(
       onTap: () {
-        widget.onFilterChanged(label);
+        widget.onFilterChanged(filterValue);
       },
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -277,7 +279,7 @@ class _OnuListViewState extends State<OnuListView> {
                           });
                         },
                         decoration: InputDecoration(
-                          hintText: 'Search by ID, Name or MAC...',
+                          hintText: AppLocalizations.of(context).searchOnu,
                           prefixIcon: const Icon(
                             Icons.search,
                             color: Color(0xFF06B6D4),

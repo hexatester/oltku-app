@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:oltku/l10n/app_localizations.dart';
 import 'package:oltku/services/kmz_service.dart';
 import 'package:oltku/services/storage_service.dart';
 import 'package:oltku/models/onu_data.dart';
@@ -35,15 +36,17 @@ class _KmzImportExportViewState extends State<KmzImportExportView> {
         int count = await KmzService.importKmz(filePath, widget.oltId);
         
         if (mounted) {
+          final l10n = AppLocalizations.of(context);
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Successfully imported $count markers!')),
+            SnackBar(content: Text(l10n.importedMarkers(count))),
           );
         }
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Import failed: $e')),
+          SnackBar(content: Text('${l10n.importFailed}: $e')),
         );
       }
     } finally {
@@ -60,14 +63,16 @@ class _KmzImportExportViewState extends State<KmzImportExportView> {
       await KmzService.exportToKmz(onus, odps, widget.onuList, widget.oltId);
       
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Export completed successfully')),
+          SnackBar(content: Text(l10n.exportCompleted)),
         );
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Export failed: $e')),
+          SnackBar(content: Text('${l10n.exportFailed}: $e')),
         );
       }
     } finally {
@@ -77,9 +82,10 @@ class _KmzImportExportViewState extends State<KmzImportExportView> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('KMZ Import & Export'),
+        title: Text(l10n.kmzImportExport),
         backgroundColor: const Color(0xFF1E1B2E),
       ),
       backgroundColor: const Color(0xFF1A1A2E),
@@ -100,21 +106,21 @@ class _KmzImportExportViewState extends State<KmzImportExportView> {
                           children: [
                             const Icon(Icons.upload_file, size: 48, color: Color(0xFF06B6D4)),
                             const SizedBox(height: 16),
-                            const Text(
-                              'Import KMZ/KML',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                            Text(
+                              l10n.importKmzTitle,
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Import placemarks from Google Earth files. They will appear as Unknown Markers on the map, which you can assign to ONUs or ODPs.',
+                            Text(
+                              l10n.importKmzHint,
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white70),
+                              style: const TextStyle(color: Colors.white70),
                             ),
                             const SizedBox(height: 24),
                             ElevatedButton.icon(
                               onPressed: _handleImport,
                               icon: const Icon(Icons.file_upload),
-                              label: const Text('Select File'),
+                              label: Text(l10n.selectFile),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF06B6D4),
                                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
@@ -133,21 +139,21 @@ class _KmzImportExportViewState extends State<KmzImportExportView> {
                           children: [
                             const Icon(Icons.download, size: 48, color: Color(0xFF10B981)),
                             const SizedBox(height: 16),
-                            const Text(
-                              'Export to KMZ',
-                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                            Text(
+                              l10n.exportKmzTitle,
+                              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                             ),
                             const SizedBox(height: 8),
-                            const Text(
-                              'Export your mapped ONUs, ODPs, and cables to a KMZ file for use in Google Earth.',
+                            Text(
+                              l10n.exportKmzHint,
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Colors.white70),
+                              style: const TextStyle(color: Colors.white70),
                             ),
                             const SizedBox(height: 24),
                             ElevatedButton.icon(
                               onPressed: _handleExport,
                               icon: const Icon(Icons.download),
-                              label: const Text('Export Now'),
+                              label: Text(l10n.exportNow),
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: const Color(0xFF10B981),
                                 padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),

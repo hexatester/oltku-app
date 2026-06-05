@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:oltku/l10n/app_localizations.dart';
 import 'package:oltku/models/olt_config.dart';
 import 'package:oltku/services/storage_service.dart';
 
@@ -113,10 +114,11 @@ class _OltEditViewState extends State<OltEditView> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Theme.of(context).colorScheme.error,
-            content: Text('Error saving config: $e'),
+            content: Text('${l10n.errorSavingConfig}: $e'),
           ),
         );
       }
@@ -214,15 +216,15 @@ class _OltEditViewState extends State<OltEditView> {
                       Center(
                         child: Text(
                           widget.existingConfig != null
-                              ? 'Edit OLT'
-                              : 'Add New OLT',
+                              ? AppLocalizations.of(context).editOlt
+                              : AppLocalizations.of(context).addOlt,
                           style: Theme.of(context).textTheme.headlineMedium,
                         ),
                       ),
                       const SizedBox(height: 8),
                       Center(
                         child: Text(
-                          'Configure connection details',
+                          AppLocalizations.of(context).configureConnection,
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.6),
                           ),
@@ -246,7 +248,7 @@ class _OltEditViewState extends State<OltEditView> {
                             TextFormField(
                               controller: _nameController,
                               decoration: InputDecoration(
-                                labelText: 'OLT Name (e.g. Main Office)',
+                                labelText: AppLocalizations.of(context).oltNameLabel,
                                 prefixIcon: const Icon(
                                   Icons.label_outline,
                                   color: Color(0xFF06B6D4),
@@ -275,7 +277,7 @@ class _OltEditViewState extends State<OltEditView> {
                               initialValue: _selectedOltModel,
                               dropdownColor: const Color(0xFF1E1B2E),
                               decoration: InputDecoration(
-                                labelText: 'OLT Model',
+                                labelText: AppLocalizations.of(context).oltModelLabel,
                                 prefixIcon: const Icon(
                                   Icons.settings,
                                   color: Color(0xFF06B6D4),
@@ -316,7 +318,7 @@ class _OltEditViewState extends State<OltEditView> {
                             TextFormField(
                               controller: _urlController,
                               decoration: InputDecoration(
-                                labelText: 'OLT Address / HTTP URL',
+                                labelText: AppLocalizations.of(context).oltAddressLabel,
                                 prefixIcon: const Icon(
                                   Icons.link,
                                   color: Color(0xFF06B6D4),
@@ -340,7 +342,7 @@ class _OltEditViewState extends State<OltEditView> {
                               ),
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter the OLT IP address or URL';
+                                  return AppLocalizations.of(context).validatorAddress;
                                 }
                                 return null;
                               },
@@ -350,7 +352,7 @@ class _OltEditViewState extends State<OltEditView> {
                             TextFormField(
                               controller: _usernameController,
                               decoration: InputDecoration(
-                                labelText: 'Username',
+                                labelText: AppLocalizations.of(context).usernameLabel,
                                 prefixIcon: const Icon(
                                   Icons.person_outline,
                                   color: Color(0xFF06B6D4),
@@ -374,7 +376,7 @@ class _OltEditViewState extends State<OltEditView> {
                               ),
                               validator: (value) {
                                 if (value == null || value.trim().isEmpty) {
-                                  return 'Please enter username';
+                                  return AppLocalizations.of(context).validatorUsername;
                                 }
                                 return null;
                               },
@@ -385,7 +387,7 @@ class _OltEditViewState extends State<OltEditView> {
                               controller: _passwordController,
                               obscureText: _obscurePassword,
                               decoration: InputDecoration(
-                                labelText: 'Password',
+                                labelText: AppLocalizations.of(context).passwordLabel,
                                 prefixIcon: const Icon(
                                   Icons.lock_outline,
                                   color: Color(0xFF06B6D4),
@@ -422,7 +424,7 @@ class _OltEditViewState extends State<OltEditView> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter password';
+                                  return AppLocalizations.of(context).validatorPassword;
                                 }
                                 return null;
                               },
@@ -433,7 +435,7 @@ class _OltEditViewState extends State<OltEditView> {
                               controller: _refreshTimeController,
                               keyboardType: TextInputType.number,
                               decoration: InputDecoration(
-                                labelText: 'Refresh Time (Minutes)',
+                                labelText: AppLocalizations.of(context).refreshTimeLabel,
                                 prefixIcon: const Icon(
                                   Icons.timer,
                                   color: Color(0xFF06B6D4),
@@ -457,10 +459,10 @@ class _OltEditViewState extends State<OltEditView> {
                               ),
                               validator: (value) {
                                 if (value == null || value.isEmpty) {
-                                  return 'Please enter refresh time';
+                                  return AppLocalizations.of(context).validatorRefreshEmpty;
                                 }
                                 if (int.tryParse(value) == null || int.parse(value) < 1) {
-                                  return 'Must be at least 1 minute';
+                                  return AppLocalizations.of(context).validatorRefreshMin;
                                 }
                                 return null;
                               },
@@ -471,7 +473,7 @@ class _OltEditViewState extends State<OltEditView> {
                               initialValue: _selectedOnuIcon,
                               dropdownColor: const Color(0xFF1E1B2E),
                               decoration: InputDecoration(
-                                labelText: 'ONU Map Marker Icon',
+                                labelText: AppLocalizations.of(context).onuIconLabel,
                                 prefixIcon: Icon(
                                   _availableIcons[_selectedOnuIcon],
                                   color: const Color(0xFF06B6D4),
@@ -519,7 +521,7 @@ class _OltEditViewState extends State<OltEditView> {
                               initialValue: _selectedOdpIcon,
                               dropdownColor: const Color(0xFF1E1B2E),
                               decoration: InputDecoration(
-                                labelText: 'ODP Map Marker Icon',
+                                labelText: AppLocalizations.of(context).odpIconLabel,
                                 prefixIcon: Icon(
                                   _availableIcons[_selectedOdpIcon],
                                   color: const Color(0xFF06B6D4),
@@ -567,7 +569,7 @@ class _OltEditViewState extends State<OltEditView> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'Map Marker Size: ${_markerSize.toInt()}',
+                                  AppLocalizations.of(context).markerSizeLabel(_markerSize.toInt()),
                                   style: const TextStyle(color: Colors.white70),
                                 ),
                                 Slider(
@@ -607,9 +609,9 @@ class _OltEditViewState extends State<OltEditView> {
                                         borderRadius: BorderRadius.circular(12),
                                       ),
                                     ),
-                                    child: const Text(
-                                      'Save',
-                                      style: TextStyle(
+                                    child: Text(
+                                      AppLocalizations.of(context).save,
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),

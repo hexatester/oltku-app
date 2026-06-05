@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:oltku/l10n/app_localizations.dart';
 import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/services/olt_service.dart';
 import 'package:oltku/screens/kmz_import_export_view.dart';
@@ -17,6 +18,7 @@ class DashboardView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final int totalOnus = onuList.length;
     final int onlineOnus = onuList.where((onu) => onu.status == "Up").length;
     final int offlineOnus = totalOnus - onlineOnus;
@@ -66,9 +68,9 @@ class DashboardView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'OLT Unreachable - Offline Mode',
-                          style: TextStyle(
+                        Text(
+                          l10n.oltUnreachable,
+                          style: const TextStyle(
                             color: Color(0xFFF59E0B),
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -76,7 +78,7 @@ class DashboardView extends StatelessWidget {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          'Showing cached data from the last successful connection. Please check your network.',
+                          l10n.cachedDataHint,
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.7),
                             fontSize: 12,
@@ -106,7 +108,7 @@ class DashboardView extends StatelessWidget {
                   GestureDetector(
                     onTap: () => onCardTapped('All'),
                     child: _buildMetricCard(
-                      title: 'Total ONUs',
+                      title: l10n.totalOnus,
                       value: '$totalOnus',
                       icon: Icons.router,
                       gradientColors: [
@@ -119,7 +121,7 @@ class DashboardView extends StatelessWidget {
                   GestureDetector(
                     onTap: () => onCardTapped('Online'),
                     child: _buildMetricCard(
-                      title: 'Online (Up)',
+                      title: l10n.onlineOnus,
                       value: '$onlineOnus',
                       icon: Icons.wifi_tethering,
                       gradientColors: [
@@ -132,7 +134,7 @@ class DashboardView extends StatelessWidget {
                   GestureDetector(
                     onTap: () => onCardTapped('Offline'),
                     child: _buildMetricCard(
-                      title: 'Offline (Down)',
+                      title: l10n.offlineOnus,
                       value: '$offlineOnus',
                       icon: Icons.wifi_tethering_off,
                       gradientColors: [
@@ -145,7 +147,7 @@ class DashboardView extends StatelessWidget {
                   GestureDetector(
                     onTap: () => onCardTapped('Online'),
                     child: _buildMetricCard(
-                      title: 'Online Ratio',
+                      title: l10n.onlineRatio,
                       value: '${onlineRatio.toStringAsFixed(1)}%',
                       icon: Icons.percent,
                       gradientColors: [
@@ -158,7 +160,7 @@ class DashboardView extends StatelessWidget {
                   GestureDetector(
                     onTap: () => onCardTapped('Bad Rx'),
                     child: _buildMetricCard(
-                      title: 'Bad Rx (<= -24)',
+                      title: l10n.badRx,
                       value: '$badRxOnus',
                       icon: Icons.warning_amber_rounded,
                       gradientColors: [
@@ -211,9 +213,9 @@ class DashboardView extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'KMZ Import & Export',
-                          style: TextStyle(
+                        Text(
+                          l10n.kmzImportExport,
+                          style: const TextStyle(
                             color: Colors.white,
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
@@ -221,7 +223,7 @@ class DashboardView extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Manage map placemarks using Google Earth files',
+                          l10n.kmzImportExportHint,
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 13,

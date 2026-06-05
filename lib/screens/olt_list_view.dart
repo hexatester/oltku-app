@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:oltku/l10n/app_localizations.dart';
+import 'package:oltku/main.dart';
 import 'package:oltku/models/olt_config.dart';
 import 'package:oltku/services/storage_service.dart';
 import 'package:oltku/services/olt_service.dart';
@@ -69,7 +71,6 @@ class _OltListViewState extends State<OltListView> {
           oltId: config.id,
         );
 
-        // Save to local database
         await StorageService.saveOnuList(config.id, onus);
         final updatedConfig = OltConfig(
           id: config.id,
@@ -102,11 +103,12 @@ class _OltListViewState extends State<OltListView> {
       }
     } catch (e) {
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: Theme.of(context).colorScheme.error,
             behavior: SnackBarBehavior.floating,
-            content: Text('Connection Error: $e'),
+            content: Text('${l10n.connectionError}: $e'),
           ),
         );
       }
@@ -120,20 +122,21 @@ class _OltListViewState extends State<OltListView> {
   }
 
   Future<void> _deleteConfig(OltConfig config) async {
+    final l10n = AppLocalizations.of(context);
     final bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E1B2E),
-        title: const Text('Delete OLT?'),
-        content: Text('Are you sure you want to delete ${config.name}?'),
+        title: Text(l10n.deleteOltTitle),
+        content: Text(l10n.deleteOltConfirm(config.name)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel', style: TextStyle(color: Colors.white70)),
+            child: Text(l10n.cancel, style: const TextStyle(color: Colors.white70)),
           ),
           TextButton(
             onPressed: () => Navigator.pop(context, true),
-            child: const Text('Delete', style: TextStyle(color: Color(0xFFEF4444))),
+            child: Text(l10n.delete, style: const TextStyle(color: Color(0xFFEF4444))),
           ),
         ],
       ),
@@ -145,15 +148,66 @@ class _OltListViewState extends State<OltListView> {
     }
   }
 
+  void _showLanguageMenu() {
+    final l10n = AppLocalizations.of(context);
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1E1B2E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Text(
+                    l10n.languageLabel,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                const Divider(color: Colors.white12),
+                _LanguageOption(
+                  flag: '🇮🇩',
+                  label: 'Bahasa Indonesia',
+                  locale: const Locale('id'),
+                ),
+                _LanguageOption(
+                  flag: '🇬🇧',
+                  label: 'English',
+                  locale: const Locale('en'),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1B2E),
         elevation: 0,
-        title: const Text(
-          'Saved OLTs',
-          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
+        leading: IconButton(
+          tooltip: l10n.languageLabel,
+          onPressed: _showLanguageMenu,
+          icon: const Icon(Icons.language, color: Colors.white),
+        ),
+        title: Text(
+          l10n.savedOlts,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 20),
         ),
       ),
       body: _isLoading
@@ -166,13 +220,14 @@ class _OltListViewState extends State<OltListView> {
                       Icon(Icons.router_outlined, size: 64, color: Colors.white.withValues(alpha: 0.2)),
                       const SizedBox(height: 16),
                       Text(
-                        'No OLTs Saved Yet',
+                        l10n.noOltSaved,
                         style: TextStyle(color: Colors.white.withValues(alpha: 0.6), fontSize: 18),
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Click the + button to add a new connection.',
+                        l10n.noOltHint,
                         style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 14),
+                        textAlign: TextAlign.center,
                       ),
                     ],
                   ),
@@ -206,7 +261,7 @@ class _OltListViewState extends State<OltListView> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      config.name.isNotEmpty ? config.name : 'Unnamed OLT',
+                                      config.name.isNotEmpty ? config.name : l10n.unnamedOlt,
                                       style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
                                     ),
                                     const SizedBox(height: 4),
@@ -275,6 +330,35 @@ class _OltListViewState extends State<OltListView> {
         foregroundColor: Colors.white,
         child: const Icon(Icons.add),
       ),
+    );
+  }
+}
+
+/// A single language option tile in the language picker bottom sheet.
+class _LanguageOption extends StatelessWidget {
+  final String flag;
+  final String label;
+  final Locale locale;
+
+  const _LanguageOption({
+    required this.flag,
+    required this.label,
+    required this.locale,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = appLocale.value.languageCode == locale.languageCode;
+    return ListTile(
+      leading: Text(flag, style: const TextStyle(fontSize: 28)),
+      title: Text(label, style: const TextStyle(color: Colors.white)),
+      trailing: isSelected
+          ? const Icon(Icons.check_circle, color: Color(0xFF06B6D4))
+          : null,
+      onTap: () {
+        appLocale.value = locale;
+        Navigator.pop(context);
+      },
     );
   }
 }

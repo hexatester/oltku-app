@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:oltku/l10n/app_localizations.dart';
 import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/services/olt_service.dart';
 import 'package:oltku/screens/olt_list_view.dart';
@@ -62,7 +63,6 @@ class _MainLayoutState extends State<MainLayout> {
         _isLoading = false;
       });
 
-      // Save refreshed ONUs to local DB
       await StorageService.saveOnuList(widget.oltId, refreshed);
 
       final configs = await StorageService.getOltConfigs();
@@ -83,11 +83,12 @@ class _MainLayoutState extends State<MainLayout> {
       }
 
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('ONU list updated successfully'),
+          SnackBar(
+            content: Text(l10n.onuUpdated),
             behavior: SnackBarBehavior.floating,
-            backgroundColor: Color(0xFF10B981),
+            backgroundColor: const Color(0xFF10B981),
           ),
         );
       }
@@ -96,9 +97,10 @@ class _MainLayoutState extends State<MainLayout> {
         _isLoading = false;
       });
       if (mounted) {
+        final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Failed to refresh data: $e'),
+            content: Text('${l10n.refreshFailed}: $e'),
             behavior: SnackBarBehavior.floating,
             backgroundColor: Theme.of(context).colorScheme.error,
           ),
@@ -109,6 +111,7 @@ class _MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       appBar: AppBar(
         backgroundColor: const Color(0xFF1E1B2E),
@@ -147,7 +150,7 @@ class _MainLayoutState extends State<MainLayout> {
                 Flexible(
                   child: Text(
                     OltService.isLastLoadFromCache
-                        ? 'Cached Offline'
+                        ? l10n.cachedOffline
                         : '${widget.oltModel}: ${widget.oltUrl.replaceFirst('http://', '').replaceFirst('https://', '')}',
                     style: TextStyle(
                       fontSize: 12,
@@ -165,7 +168,7 @@ class _MainLayoutState extends State<MainLayout> {
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
             onPressed: _refreshStats,
-            tooltip: 'Refresh',
+            tooltip: l10n.refresh,
           ),
           IconButton(
             icon: const Icon(Icons.logout, color: Colors.white),
@@ -175,7 +178,7 @@ class _MainLayoutState extends State<MainLayout> {
                 MaterialPageRoute(builder: (context) => const OltListView()),
               );
             },
-            tooltip: 'Logout',
+            tooltip: l10n.logout,
           ),
         ],
       ),
@@ -189,13 +192,19 @@ class _MainLayoutState extends State<MainLayout> {
             _selectedIndex = index;
           });
         },
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.dashboard),
-            label: 'Dashboard',
+            icon: const Icon(Icons.dashboard),
+            label: l10n.dashboard,
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.list), label: 'ONU List'),
-          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.list),
+            label: l10n.onuList,
+          ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.map),
+            label: l10n.map,
+          ),
         ],
       ),
       body: _isLoading
