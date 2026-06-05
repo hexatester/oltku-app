@@ -1,0 +1,166 @@
+import 'package:flutter/material.dart';
+import 'package:file_picker/file_picker.dart';
+import 'package:oltku/services/kmz_service.dart';
+import 'package:oltku/services/storage_service.dart';
+import 'package:oltku/models/onu_data.dart';
+
+class KmzImportExportView extends StatefulWidget {
+  final String oltId;
+  final List<OnuData> onuList;
+
+  const KmzImportExportView({
+    super.key,
+    required this.oltId,
+    required this.onuList,
+  });
+
+  @override
+  State<KmzImportExportView> createState() => _KmzImportExportViewState();
+}
+
+class _KmzImportExportViewState extends State<KmzImportExportView> {
+  bool _isLoading = false;
+
+  Future<void> _handleImport() async {
+    try {
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowedExtensions: ['kml', 'kmz', 'zip'],
+      );
+
+      if (result != null && result.files.single.path != null) {
+        setState(() => _isLoading = true);
+        String filePath = result.files.single.path!;
+        
+        int count = await KmzService.importKmz(filePath, widget.oltId);
+        
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Successfully imported $count markers!')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Import failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _handleExport() async {
+    setState(() => _isLoading = true);
+    try {
+      final onus = await StorageService.getOnuLocations(widget.oltId);
+      final odps = await StorageService.getOdps(widget.oltId);
+      
+      await KmzService.exportToKmz(onus, odps, widget.onuList, widget.oltId);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Export completed successfully')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Export failed: $e')),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('KMZ Import & Export'),
+        backgroundColor: const Color(0xFF1E1B2E),
+      ),
+      backgroundColor: const Color(0xFF1A1A2E),
+      body: Center(
+        child: _isLoading
+            ? const CircularProgressIndicator()
+            : Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Card(
+                      color: const Color(0xFF2D2A43),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          children: [
+                            const Icon(Icons.upload_file, size: 48, color: Color(0xFF06B6D4)),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Import KMZ/KML',
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Import placemarks from Google Earth files. They will appear as Unknown Markers on the map, which you can assign to ONUs or ODPs.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton.icon(
+                              onPressed: _handleImport,
+                              icon: const Icon(Icons.file_upload),
+                              label: const Text('Select File'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF06B6D4),
+                                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Card(
+                      color: const Color(0xFF2D2A43),
+                      child: Padding(
+                        padding: const EdgeInsets.all(24.0),
+                        child: Column(
+                          children: [
+                            const Icon(Icons.download, size: 48, color: Color(0xFF10B981)),
+                            const SizedBox(height: 16),
+                            const Text(
+                              'Export to KMZ',
+                              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                            const SizedBox(height: 8),
+                            const Text(
+                              'Export your mapped ONUs, ODPs, and cables to a KMZ file for use in Google Earth.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Colors.white70),
+                            ),
+                            const SizedBox(height: 24),
+                            ElevatedButton.icon(
+                              onPressed: _handleExport,
+                              icon: const Icon(Icons.download),
+                              label: const Text('Export Now'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF10B981),
+                                padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+}

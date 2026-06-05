@@ -6,6 +6,7 @@ import 'package:oltku/models/olt_config.dart';
 import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/models/onu_location.dart';
 import 'package:oltku/models/odp_data.dart';
+import 'package:oltku/models/unknown_marker_data.dart';
 
 class StorageService {
   static Database? _db;
@@ -13,6 +14,7 @@ class StorageService {
   static final _onuStore = intMapStoreFactory.store('onu_data');
   static final _locationStore = intMapStoreFactory.store('onu_locations');
   static final _odpStore = intMapStoreFactory.store('odp_data');
+  static final _unknownMarkerStore = intMapStoreFactory.store('unknown_markers');
 
   static Future<Database> get _database async {
     if (_db != null) {
@@ -67,6 +69,9 @@ class StorageService {
 
     // Cascade delete related ODPs
     await _odpStore.delete(db, finder: Finder(filter: Filter.equals('oltId', id)));
+
+    // Cascade delete related unknown markers
+    await _unknownMarkerStore.delete(db, finder: Finder(filter: Filter.equals('oltId', id)));
   }
 
   static Future<void> saveOnuList(String oltId, List<OnuData> onus) async {
@@ -154,5 +159,30 @@ class StorageService {
     final db = await _database;
     final finder = Finder(filter: Filter.equals('id', odpId));
     await _odpStore.delete(db, finder: finder);
+  }
+
+  static Future<void> saveUnknownMarker(UnknownMarkerData marker) async {
+    final db = await _database;
+    final finder = Finder(filter: Filter.equals('id', marker.id));
+    final existing = await _unknownMarkerStore.findFirst(db, finder: finder);
+
+    if (existing != null) {
+      await _unknownMarkerStore.record(existing.key).update(db, marker.toJson());
+    } else {
+      await _unknownMarkerStore.add(db, marker.toJson());
+    }
+  }
+
+  static Future<List<UnknownMarkerData>> getUnknownMarkers(String oltId) async {
+    final db = await _database;
+    final finder = Finder(filter: Filter.equals('oltId', oltId));
+    final records = await _unknownMarkerStore.find(db, finder: finder);
+    return records.map((r) => UnknownMarkerData.fromJson(r.value)).toList();
+  }
+
+  static Future<void> deleteUnknownMarker(String markerId) async {
+    final db = await _database;
+    final finder = Finder(filter: Filter.equals('id', markerId));
+    await _unknownMarkerStore.delete(db, finder: finder);
   }
 }

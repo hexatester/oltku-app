@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/services/olt_service.dart';
+import 'package:oltku/screens/kmz_import_export_view.dart';
 
 class DashboardView extends StatelessWidget {
   final List<OnuData> onuList;
   final Function(String) onCardTapped;
+  final String oltId;
 
   const DashboardView({
     super.key,
     required this.onuList,
     required this.onCardTapped,
+    required this.oltId,
   });
 
   @override
@@ -168,6 +171,69 @@ class DashboardView extends StatelessWidget {
                 ],
               );
             },
+          ),
+          const SizedBox(height: 24),
+          // KMZ Import/Export Card
+          GestureDetector(
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => KmzImportExportView(
+                    oltId: oltId,
+                    onuList: onuList,
+                  ),
+                ),
+              );
+            },
+            child: Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF8B5CF6), Color(0xFF7C3AED)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFF8B5CF6).withValues(alpha: 0.3),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.import_export, size: 40, color: Colors.white),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'KMZ Import & Export',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Manage map placemarks using Google Earth files',
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
+                ],
+              ),
+            ),
           ),
         ],
       ),

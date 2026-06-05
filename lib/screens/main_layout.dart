@@ -205,6 +205,7 @@ class _MainLayoutState extends State<MainLayout> {
               children: [
                 DashboardView(
                   onuList: _fullList,
+                  oltId: widget.oltId,
                   onCardTapped: (filter) {
                     setState(() {
                       _currentFilter = filter;

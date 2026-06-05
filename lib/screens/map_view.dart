@@ -11,6 +11,7 @@ import 'package:oltku/models/onu_location.dart';
 import 'package:oltku/models/odp_data.dart';
 import 'package:oltku/services/storage_service.dart';
 import 'package:oltku/widgets/odp_form_dialog.dart';
+import 'package:oltku/models/unknown_marker_data.dart';
 
 class MapView extends StatefulWidget {
   final String oltId;
@@ -29,6 +30,7 @@ class _MapViewState extends State<MapView> {
   LatLng? _currentLocation;
   List<OnuLocationData> _savedLocations = [];
   List<OdpData> _savedOdps = [];
+  List<UnknownMarkerData> _unknownMarkers = [];
   bool _isLoading = true;
   OltConfig? _oltConfig;
   MapType _mapType = MapType.normal;
@@ -180,10 +182,12 @@ class _MapViewState extends State<MapView> {
   Future<void> _loadSavedLocations() async {
     final locations = await StorageService.getOnuLocations(widget.oltId);
     final odps = await StorageService.getOdps(widget.oltId);
+    final unknowns = await StorageService.getUnknownMarkers(widget.oltId);
     if (mounted) {
       setState(() {
         _savedLocations = locations;
         _savedOdps = odps;
+        _unknownMarkers = unknowns;
       });
       await _updateMarkersDirectly();
     }
@@ -386,6 +390,31 @@ class _MapViewState extends State<MapView> {
       );
     }
 
+    for (var unknown in _unknownMarkers) {
+      newMarkers.add(
+        Marker(
+          markerId: MarkerId('unknown_${unknown.id}'),
+          position: LatLng(unknown.latitude, unknown.longitude),
+          anchor: const Offset(0.5, 0.5),
+          draggable: true,
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueMagenta),
+          onTap: () => _showUnknownMarkerOptions(unknown),
+          onDragEnd: (newPosition) async {
+            final updatedMarker = UnknownMarkerData(
+              id: unknown.id,
+              oltId: unknown.oltId,
+              name: unknown.name,
+              latitude: newPosition.latitude,
+              longitude: newPosition.longitude,
+              description: unknown.description,
+            );
+            await StorageService.saveUnknownMarker(updatedMarker);
+            await _loadSavedLocations();
+          },
+        ),
+      );
+    }
+
     if (mounted) {
       setState(() {
         _markers = newMarkers;
@@ -500,6 +529,78 @@ class _MapViewState extends State<MapView> {
     );
   }
 
+  void _showUnknownMarkerOptions(UnknownMarkerData unknown) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          backgroundColor: const Color(0xFF2D2A43),
+          title: Text(unknown.name, style: const TextStyle(color: Colors.white)),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (unknown.description != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Text(unknown.description!, style: const TextStyle(color: Colors.white70)),
+                ),
+              ListTile(
+                leading: const Icon(Icons.router, color: Colors.blue),
+                title: const Text('Assign as ONU', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  Navigator.pop(context);
+                  showAssignOnuDialog(context, widget.oltId, LatLng(unknown.latitude, unknown.longitude), widget.onuList, _savedLocations, () async {
+                    await StorageService.deleteUnknownMarker(unknown.id);
+                    await _loadSavedLocations();
+                  });
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.device_hub, color: Colors.purple),
+                title: const Text('Assign as ODP', style: TextStyle(color: Colors.white)),
+                onTap: () {
+                  Navigator.pop(context);
+                  showDialog(
+                    context: context,
+                    builder: (context) {
+                      return OdpFormDialog(
+                        oltId: widget.oltId,
+                        point: LatLng(unknown.latitude, unknown.longitude),
+                        mappedOnus: _savedLocations,
+                        onuDetails: widget.onuList,
+                        onSave: (odp) async {
+                          final updatedOdp = OdpData(
+                            id: odp.id, oltId: odp.oltId, name: unknown.name, // Use the marker's name
+                            latitude: odp.latitude, longitude: odp.longitude,
+                            parentId: odp.parentId, portCount: odp.portCount,
+                            cableName: odp.cableName, coreColor: odp.coreColor, tubeColor: odp.tubeColor, onuIds: odp.onuIds,
+                          );
+                          await StorageService.saveOdp(updatedOdp);
+                          await StorageService.deleteUnknownMarker(unknown.id);
+                          await _loadSavedLocations();
+                          if (context.mounted) Navigator.pop(context);
+                        },
+                      );
+                    },
+                  );
+                },
+              ),
+              ListTile(
+                leading: const Icon(Icons.delete, color: Colors.red),
+                title: const Text('Delete Marker', style: TextStyle(color: Colors.white)),
+                onTap: () async {
+                  Navigator.pop(context);
+                  await StorageService.deleteUnknownMarker(unknown.id);
+                  await _loadSavedLocations();
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
 
 
 
@@ -596,22 +697,53 @@ class _MapViewState extends State<MapView> {
             polylines: _polylines,
           ),
           Positioned(
-            top: 60,
-            right: 16,
-            child: FloatingActionButton(
-              heroTag: 'mapTypeToggle',
-              backgroundColor: const Color(0xFF2D2A43),
-              mini: true,
-              onPressed: () {
-                setState(() {
-                  _mapType = _mapType == MapType.normal
-                      ? MapType.satellite
-                      : MapType.normal;
-                });
-              },
-              child: Icon(
-                _mapType == MapType.normal ? Icons.satellite : Icons.map,
-                color: Colors.white,
+            top: 16,
+            left: 16,
+            child: Container(
+              decoration: BoxDecoration(
+                color: const Color(0xFF2D2A43),
+                borderRadius: BorderRadius.circular(8),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 4,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    tooltip: 'Toggle Map Type',
+                    onPressed: () {
+                      setState(() {
+                        _mapType = _mapType == MapType.normal
+                            ? MapType.satellite
+                            : MapType.normal;
+                      });
+                    },
+                    icon: Icon(
+                      _mapType == MapType.normal ? Icons.satellite : Icons.map,
+                      color: Colors.white,
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 24,
+                    color: Colors.white24,
+                  ),
+                  IconButton(
+                    tooltip: 'Reload',
+                    onPressed: () async {
+                      await _loadSavedLocations();
+                    },
+                    icon: const Icon(
+                      Icons.refresh,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
