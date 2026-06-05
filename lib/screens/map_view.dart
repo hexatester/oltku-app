@@ -17,8 +17,9 @@ import 'package:oltku/l10n/app_localizations.dart';
 class MapView extends StatefulWidget {
   final String oltId;
   final List<OnuData> onuList;
+  final OnuLocationData? focusLocation;
 
-  const MapView({super.key, required this.oltId, required this.onuList});
+  const MapView({super.key, required this.oltId, required this.onuList, this.focusLocation});
 
   @override
   State<MapView> createState() => _MapViewState();
@@ -70,6 +71,21 @@ class _MapViewState extends State<MapView> {
   void initState() {
     super.initState();
     _initMap();
+  }
+
+  @override
+  void didUpdateWidget(covariant MapView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.focusLocation != oldWidget.focusLocation && widget.focusLocation != null) {
+      if (_mapController != null) {
+        _mapController!.animateCamera(
+          CameraUpdate.newLatLngZoom(
+            LatLng(widget.focusLocation!.latitude, widget.focusLocation!.longitude),
+            18.0,
+          ),
+        );
+      }
+    }
   }
 
   Future<void> _initMap() async {
@@ -678,6 +694,14 @@ class _MapViewState extends State<MapView> {
             mapType: _mapType,
             onMapCreated: (controller) {
               _mapController = controller;
+              if (widget.focusLocation != null) {
+                _mapController!.animateCamera(
+                  CameraUpdate.newLatLngZoom(
+                    LatLng(widget.focusLocation!.latitude, widget.focusLocation!.longitude),
+                    18.0,
+                  ),
+                );
+              }
             },
             initialCameraPosition: CameraPosition(
               target: _currentLocation ?? const LatLng(0, 0),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/services/olt_service.dart';
 import 'package:oltku/l10n/app_localizations.dart';
+import 'package:oltku/services/storage_service.dart';
+import 'package:oltku/models/onu_location.dart';
 
 /// A dialog showing all 20 stats of the selected ONU, fetched dynamically from OLT configuration endpoint.
 class OnuDetailsDialog extends StatefulWidget {
@@ -10,6 +12,8 @@ class OnuDetailsDialog extends StatefulWidget {
   final String username;
   final String password;
   final String oltModel;
+  final String oltId;
+  final ValueChanged<OnuLocationData>? onLocate;
 
   const OnuDetailsDialog({
     super.key,
@@ -18,6 +22,8 @@ class OnuDetailsDialog extends StatefulWidget {
     required this.username,
     required this.password,
     required this.oltModel,
+    required this.oltId,
+    this.onLocate,
   });
 
   @override
@@ -27,6 +33,7 @@ class OnuDetailsDialog extends StatefulWidget {
 class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
   late Future<OnuData> _configFuture;
   bool _isRebooting = false;
+  OnuLocationData? _locationData;
 
   Future<void> _handleReboot(OnuData onu) async {
     final l10n = AppLocalizations.of(context);
@@ -101,13 +108,24 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
   @override
   void initState() {
     super.initState();
-    _configFuture = OltService.fetchOnuConfig(
+    _configFuture = OltService.getOnuDetail(
       model: widget.oltModel,
       original: widget.onu,
       url: widget.url,
       username: widget.username,
       password: widget.password,
     );
+    _checkLocation();
+  }
+
+  Future<void> _checkLocation() async {
+    final locations = await StorageService.getOnuLocations(widget.oltId);
+    final loc = locations.where((l) => l.onuId == widget.onu.id).firstOrNull;
+    if (mounted && loc != null) {
+      setState(() {
+        _locationData = loc;
+      });
+    }
   }
 
   @override
@@ -420,6 +438,25 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
                           ),
                         ),
                       ),
+                      if (_locationData != null)
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            if (widget.onLocate != null) {
+                              widget.onLocate!(_locationData!);
+                            }
+                          },
+                          icon: const Icon(Icons.location_on, size: 18),
+                          label: const Text('Locate'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF6366F1).withValues(alpha: 0.2),
+                            foregroundColor: const Color(0xFF6366F1),
+                            elevation: 0,
+                            side: BorderSide(
+                              color: const Color(0xFF6366F1).withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ),
                       TextButton(
                         onPressed: () => Navigator.pop(context),
                         style: TextButton.styleFrom(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:oltku/l10n/app_localizations.dart';
 import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/widgets/onu_details_dialog.dart';
+import 'package:oltku/models/onu_location.dart';
 
 class OnuListView extends StatefulWidget {
   final List<OnuData> onuList;
@@ -11,6 +12,8 @@ class OnuListView extends StatefulWidget {
   final String oltModel;
   final String currentFilter;
   final ValueChanged<String> onFilterChanged;
+  final String oltId;
+  final ValueChanged<OnuLocationData>? onLocateOnu;
 
   const OnuListView({
     super.key,
@@ -21,6 +24,8 @@ class OnuListView extends StatefulWidget {
     required this.oltModel,
     required this.currentFilter,
     required this.onFilterChanged,
+    required this.oltId,
+    this.onLocateOnu,
   });
 
   @override
@@ -193,6 +198,8 @@ class _OnuListViewState extends State<OnuListView> {
         username: widget.username,
         password: widget.password,
         oltModel: widget.oltModel,
+        oltId: widget.oltId,
+        onLocate: widget.onLocateOnu,
       ),
     );
   }

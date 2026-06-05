@@ -7,6 +7,7 @@ import 'package:oltku/screens/dashboard_view.dart';
 import 'package:oltku/screens/onu_list_view.dart';
 import 'package:oltku/screens/map_view.dart';
 import 'package:oltku/models/olt_config.dart';
+import 'package:oltku/models/onu_location.dart';
 import 'package:oltku/services/storage_service.dart';
 
 class MainLayout extends StatefulWidget {
@@ -36,6 +37,7 @@ class _MainLayoutState extends State<MainLayout> {
   bool _isLoading = false;
   int _selectedIndex = 0;
   String _currentFilter = "All";
+  OnuLocationData? _focusLocation;
 
   @override
   void initState() {
@@ -229,15 +231,23 @@ class _MainLayoutState extends State<MainLayout> {
                   password: widget.password,
                   oltModel: widget.oltModel,
                   currentFilter: _currentFilter,
+                  oltId: widget.oltId,
                   onFilterChanged: (filter) {
                     setState(() {
                       _currentFilter = filter;
+                    });
+                  },
+                  onLocateOnu: (location) {
+                    setState(() {
+                      _focusLocation = location;
+                      _selectedIndex = 2; // Map tab
                     });
                   },
                 ),
                 MapView(
                   oltId: widget.oltId,
                   onuList: _fullList,
+                  focusLocation: _focusLocation,
                 ),
               ],
             ),

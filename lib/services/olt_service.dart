@@ -49,7 +49,7 @@ class OltService {
   }
 
   /// Fetches detailed config and optical parameters for a specific ONU
-  static Future<OnuData> fetchOnuConfig({
+  static Future<OnuData> getOnuDetail({
     required String model,
     required OnuData original,
     required String url,
