@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:oltku/models/onu_data.dart';
-import 'package:flutter/material.dart';
-import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/services/olt_service.dart';
 import 'package:oltku/l10n/app_localizations.dart';
 
@@ -36,7 +34,10 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: const Color(0xFF1E1B2E),
-        title: Text(l10n.rebootOnuTitle, style: const TextStyle(color: Colors.white)),
+        title: Text(
+          l10n.rebootOnuTitle,
+          style: const TextStyle(color: Colors.white),
+        ),
         content: Text(
           l10n.confirmReboot(onu.name, onu.id),
           style: const TextStyle(color: Colors.white70),
@@ -54,7 +55,10 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFFEF4444),
             ),
-            child: Text(l10n.reboot, style: const TextStyle(color: Colors.white)),
+            child: Text(
+              l10n.reboot,
+              style: const TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),
@@ -109,7 +113,7 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    
+
     return Dialog(
       backgroundColor: const Color(0xFF1E1B2E),
       shape: RoundedRectangleBorder(
@@ -133,7 +137,10 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
                       const SizedBox(height: 20),
                       Text(
                         l10n.fetchingOnuStats,
-                        style: const TextStyle(color: Colors.white70, fontSize: 14),
+                        style: const TextStyle(
+                          color: Colors.white70,
+                          fontSize: 14,
+                        ),
                       ),
                     ],
                   ),
@@ -336,7 +343,11 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
                             onu.fwVersion,
                             Icons.code,
                           ),
-                          _buildDetailItem(l10n.chipId, onu.chipId, Icons.memory),
+                          _buildDetailItem(
+                            l10n.chipId,
+                            onu.chipId,
+                            Icons.memory,
+                          ),
                           _buildDetailItem(
                             l10n.ports,
                             onu.ports,
@@ -393,7 +404,9 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
                                 ),
                               )
                             : const Icon(Icons.restart_alt, size: 18),
-                        label: Text(_isRebooting ? l10n.rebooting : l10n.reboot),
+                        label: Text(
+                          _isRebooting ? l10n.rebooting : l10n.reboot,
+                        ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(
                             0xFFEF4444,
