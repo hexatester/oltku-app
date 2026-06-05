@@ -37,6 +37,18 @@ class _MapViewState extends State<MapView> {
   OltConfig? _oltConfig;
   MapType _mapType = MapType.normal;
   CameraPosition? _lastCameraPosition;
+  bool _hideLandmarks = false;
+
+  // Map style that hides Google Maps POI labels and icons
+  static const String _noLandmarksStyle = '''
+[
+  {"featureType":"poi","elementType":"labels.icon","stylers":[{"visibility":"off"}]},
+  {"featureType":"poi","elementType":"labels.text","stylers":[{"visibility":"off"}]},
+  {"featureType":"poi","elementType":"geometry","stylers":[{"visibility":"off"}]},
+  {"featureType":"transit","elementType":"labels.icon","stylers":[{"visibility":"off"}]},
+  {"featureType":"transit","elementType":"labels.text","stylers":[{"visibility":"off"}]}
+]
+''';
 
   bool _isEditingCable = false;
   OnuLocationData? _editingOnuLocation;
@@ -727,6 +739,7 @@ class _MapViewState extends State<MapView> {
         children: [
           GoogleMap(
             mapType: _mapType,
+            style: _hideLandmarks ? _noLandmarksStyle : null,
             onMapCreated: (controller) {
               _mapController = controller;
               if (widget.focusLocation != null) {
@@ -794,6 +807,23 @@ class _MapViewState extends State<MapView> {
                     icon: Icon(
                       _mapType == MapType.normal ? Icons.satellite : Icons.map,
                       color: Colors.white,
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 24,
+                    color: Colors.white24,
+                  ),
+                  IconButton(
+                    tooltip: _hideLandmarks ? 'Show Landmarks' : 'Hide Landmarks',
+                    onPressed: () {
+                      setState(() {
+                        _hideLandmarks = !_hideLandmarks;
+                      });
+                    },
+                    icon: Icon(
+                      _hideLandmarks ? Icons.place_outlined : Icons.place,
+                      color: _hideLandmarks ? Colors.white38 : Colors.white,
                     ),
                   ),
                   Container(
