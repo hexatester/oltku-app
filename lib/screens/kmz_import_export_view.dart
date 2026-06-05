@@ -32,13 +32,21 @@ class _KmzImportExportViewState extends State<KmzImportExportView> {
       if (result != null && result.files.single.path != null) {
         setState(() => _isLoading = true);
         String filePath = result.files.single.path!;
-        
-        int count = await KmzService.importKmz(filePath, widget.oltId);
-        
+
+        final counts = await KmzService.importKmz(filePath, widget.oltId);
+
         if (mounted) {
-          final l10n = AppLocalizations.of(context);
+          final onu = counts['onu'] ?? 0;
+          final odp = counts['odp'] ?? 0;
+          final unknown = counts['unknown'] ?? 0;
+          final total = onu + odp + unknown;
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(l10n.importedMarkers(count))),
+            SnackBar(
+              content: Text(
+                'Imported $total items: $onu ONU markers, $odp ODPs, $unknown unknown markers.',
+              ),
+              backgroundColor: const Color(0xFF10B981),
+            ),
           );
         }
       }
@@ -46,7 +54,10 @@ class _KmzImportExportViewState extends State<KmzImportExportView> {
       if (mounted) {
         final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${l10n.importFailed}: $e')),
+          SnackBar(
+            content: Text('${l10n.importFailed}: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
@@ -59,20 +70,30 @@ class _KmzImportExportViewState extends State<KmzImportExportView> {
     try {
       final onus = await StorageService.getOnuLocations(widget.oltId);
       final odps = await StorageService.getOdps(widget.oltId);
-      
-      await KmzService.exportToKmz(onus, odps, widget.onuList, widget.oltId);
-      
+      final unknowns = await StorageService.getUnknownMarkers(widget.oltId);
+
+      await KmzService.exportToKmz(
+        onus, odps, widget.onuList, widget.oltId,
+        unknownMarkers: unknowns,
+      );
+
       if (mounted) {
         final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.exportCompleted)),
+          SnackBar(
+            content: Text(l10n.exportCompleted),
+            backgroundColor: const Color(0xFF10B981),
+          ),
         );
       }
     } catch (e) {
       if (mounted) {
         final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${l10n.exportFailed}: $e')),
+          SnackBar(
+            content: Text('${l10n.exportFailed}: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
       }
     } finally {
