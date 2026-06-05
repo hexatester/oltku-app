@@ -96,18 +96,19 @@ void showAssignOnuDialog(
               savedLocations: savedLocations,
               existingLocation: existingLocation,
               onAssign:
-                  (onuId, cableName, cableLength, coreColor, tubeColor) async {
+                  (onuId, cableName, cableLength, coreColor, tubeColor, icon) async {
                     final location = OnuLocationData(
                       oltId: oltId,
                       onuId: onuId,
-                      latitude: point.latitude,
-                      longitude: point.longitude,
+                      latitude: existingLocation?.latitude ?? point.latitude,
+                      longitude: existingLocation?.longitude ?? point.longitude,
                       cableName: cableName,
                       cableLength: cableLength,
                       coreColor: coreColor,
                       tubeColor: tubeColor,
                       odpId: existingLocation?.odpId,
                       cablePath: existingLocation?.cablePath,
+                      icon: icon,
                     );
                     await StorageService.saveOnuLocation(location);
                     onSaved();
@@ -324,7 +325,7 @@ class AssignOnuDialogWidget extends StatefulWidget {
   final LatLng point;
   final List<OnuData> onuList;
   final List<OnuLocationData> savedLocations;
-  final Function(String, String?, String?, String?, String?) onAssign;
+  final Function(String, String?, String?, String?, String?, String?) onAssign;
   final OnuLocationData? existingLocation;
 
   const AssignOnuDialogWidget({
@@ -347,6 +348,20 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
   late TextEditingController _cableLengthController;
   String? _selectedCoreColor;
   String? _selectedTubeColor;
+  String? _selectedIcon;
+
+  static const Map<String, IconData> _availableIcons = {
+    'router': Icons.router,
+    'device_hub': Icons.device_hub,
+    'wifi': Icons.wifi,
+    'home': Icons.home,
+    'business': Icons.business,
+    'cell_tower': Icons.cell_tower,
+    'hub': Icons.hub,
+    'settings_input_antenna': Icons.settings_input_antenna,
+    'account_tree': Icons.account_tree,
+    'location_on': Icons.location_on,
+  };
 
   static const List<String> _fiberColors = [
     'Transparent',
@@ -376,6 +391,7 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
     );
     _selectedCoreColor = widget.existingLocation?.coreColor;
     _selectedTubeColor = widget.existingLocation?.tubeColor;
+    _selectedIcon = widget.existingLocation?.icon;
   }
 
   @override
@@ -497,6 +513,41 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                initialValue: _selectedIcon,
+                dropdownColor: const Color(0xFF2D2A43),
+                style: const TextStyle(color: Colors.white),
+                decoration: InputDecoration(
+                  labelText: 'Marker Icon (Optional)',
+                  labelStyle: const TextStyle(color: Colors.white54),
+                  filled: true,
+                  fillColor: Colors.black26,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                items: [
+                  const DropdownMenuItem(
+                    value: null,
+                    child: Text('Default'),
+                  ),
+                  ..._availableIcons.entries.map(
+                    (entry) => DropdownMenuItem(
+                      value: entry.key,
+                      child: Row(
+                        children: [
+                          Icon(entry.value, color: Colors.white, size: 20),
+                          const SizedBox(width: 8),
+                          Text(entry.key),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+                onChanged: (val) => setState(() => _selectedIcon = val),
+              ),
               const SizedBox(height: 16),
               Row(
                 mainAxisAlignment: MainAxisAlignment.end,
@@ -527,6 +578,7 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
                             : _cableLengthController.text.trim(),
                         _selectedCoreColor,
                         _selectedTubeColor,
+                        _selectedIcon,
                       );
                     },
                     style: ElevatedButton.styleFrom(
@@ -627,6 +679,7 @@ class _AssignOnuDialogWidgetState extends State<AssignOnuDialogWidget> {
                       _cableLengthController.clear();
                       _selectedCoreColor = null;
                       _selectedTubeColor = null;
+                      _selectedIcon = null;
                     });
                   },
                 );

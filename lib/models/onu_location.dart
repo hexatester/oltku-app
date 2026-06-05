@@ -8,6 +8,7 @@ class OnuLocationData {
   final String? coreColor;
   final String? tubeColor;
   final String? odpId;
+  final String? icon;
   final List<Map<String, double>>? cablePath;
 
   OnuLocationData({
@@ -20,6 +21,7 @@ class OnuLocationData {
     this.coreColor,
     this.tubeColor,
     this.odpId,
+    this.icon,
     this.cablePath,
   });
 
@@ -34,6 +36,7 @@ class OnuLocationData {
       coreColor: json['coreColor'],
       tubeColor: json['tubeColor'],
       odpId: json['odpId'],
+      icon: json['icon'],
       cablePath: (json['cablePath'] as List<dynamic>?)
           ?.map((e) => Map<String, double>.from(e))
           .toList(),
@@ -51,6 +54,7 @@ class OnuLocationData {
       'coreColor': coreColor,
       'tubeColor': tubeColor,
       'odpId': odpId,
+      'icon': icon,
       'cablePath': cablePath,
     };
   }

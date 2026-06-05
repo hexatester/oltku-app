@@ -280,7 +280,7 @@ class _MapViewState extends State<MapView> {
       final isOnline = onu.status == "Up";
       final color = _getRxColor(onu.rxPower, isOnline: isOnline);
 
-      final iconName = _oltConfig?.onuIcon ?? 'router';
+      final iconName = loc.icon ?? _oltConfig?.onuIcon ?? 'router';
       final iconData = _availableIcons[iconName] ?? Icons.router;
       final customIcon = await _getCachedIconBitmap(
         iconData,
