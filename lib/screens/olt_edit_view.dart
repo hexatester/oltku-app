@@ -21,12 +21,17 @@ class _OltEditViewState extends State<OltEditView> {
   final _refreshTimeController = TextEditingController(text: '1');
   bool _obscurePassword = true;
   bool _isLoading = false;
-  final List<String> _oltModels = ['Hioso'];
+  final List<String> _oltModels = ['Hioso', 'HSGQ', 'ZTE', 'CDATA', 'VSOL'];
   String _selectedOltModel = 'Hioso';
 
   // Submodels per OLT model
   final Map<String, List<String>> _submodelOptions = const {
     'Hioso': ['HA7304', 'HA7302CST'],
+    'HSGQ': ['G01ID', 'G02ID', 'G04ID', 'G08ID', 'G16ID', 'E04R', 'E08R'],
+    'ZTE': ['C300', 'C320', 'C600'],
+    'Huawei': ['MA5603T', 'MA5608T', 'MA5800'],
+    'VSOL': ['V280', 'V284', 'V660', 'V661', 'V680'],
+    'CDATA': ['HG6145F', 'HG6543C', 'HG6804'],
   };
   String? _selectedSubmodel = 'HA7304';
 
@@ -332,14 +337,16 @@ class _OltEditViewState extends State<OltEditView> {
                                     _selectedOltModel = newValue;
                                     final subs =
                                         _submodelOptions[newValue] ?? [];
-                                    _selectedSubmodel =
-                                        subs.isNotEmpty ? subs.first : null;
+                                    _selectedSubmodel = subs.isNotEmpty
+                                        ? subs.first
+                                        : null;
                                   });
                                 }
                               },
                             ),
                             // Submodel dropdown (only when submodel options exist)
-                            if ((_submodelOptions[_selectedOltModel] ?? []).isNotEmpty) ...[  
+                            if ((_submodelOptions[_selectedOltModel] ?? [])
+                                .isNotEmpty) ...[
                               const SizedBox(height: 20),
                               DropdownButtonFormField<String>(
                                 initialValue: _selectedSubmodel,

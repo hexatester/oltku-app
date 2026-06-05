@@ -129,7 +129,7 @@ class HiosoService {
   // ---------------------------------------------------------------------------
 
   /// Extracts raw string/number values from a JS `new Array(...)` declaration.
-  static List<String> _extractArrayElements(String html, String arrayName) {
+  static List<String> parseJsArray(String html, String arrayName) {
     final arrayRegex = RegExp(
       'var\\s+$arrayName\\s*=\\s*new\\s+Array\\s*\\(([\\s\\S]*?)\\);',
     );
@@ -160,7 +160,7 @@ class HiosoService {
       );
     }
 
-    final rawValues = _extractArrayElements(html, 'onutable');
+    final rawValues = parseJsArray(html, 'onutable');
     if (rawValues.isEmpty) {
       throw Exception('No ONU data elements found in JS array.');
     }
@@ -245,8 +245,8 @@ class HiosoService {
       }
 
       final html = response.body;
-      final infoRaw = _extractArrayElements(html, 'onuinfo');
-      final opmRaw = _extractArrayElements(html, 'onuOpmInfo');
+      final infoRaw = parseJsArray(html, 'onuinfo');
+      final opmRaw = parseJsArray(html, 'onuOpmInfo');
 
       if (infoRaw.isEmpty && opmRaw.isEmpty) return original;
 

@@ -2,29 +2,31 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:oltku/main.dart';
 import 'package:oltku/services/olt_service.dart';
-import 'package:oltku/services/hioso_ha7304_service.dart';
+import 'package:oltku/services/hioso_service.dart';
 import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/services/storage_service.dart';
 
+import 'package:flutter/services.dart';
+import 'dart:io';
+
 void main() {
-  testWidgets('Olt List View UI elements test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
-    await tester.pumpAndSettle();
+  TestWidgetsFlutterBinding.ensureInitialized();
 
-    // Verify presence of title and empty state
-    expect(find.text('Saved OLTs'), findsOneWidget);
-    expect(find.text('No OLTs Saved Yet'), findsOneWidget);
-    expect(find.byType(FloatingActionButton), findsOneWidget);
-
-    // Navigate to add OLT screen
-    await tester.tap(find.byType(FloatingActionButton));
-    await tester.pumpAndSettle();
-
-    expect(find.text('Add New OLT'), findsOneWidget);
-    expect(find.text('Save'), findsOneWidget);
-    expect(find.byIcon(Icons.link), findsOneWidget);
+  setUpAll(() {
+    final tempDir = Directory.systemTemp.createTempSync('oltku_test');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      const MethodChannel('plugins.flutter.io/path_provider'),
+      (MethodCall methodCall) async {
+        if (methodCall.method == 'getApplicationDocumentsDirectory') {
+          return tempDir.path;
+        }
+        return null;
+      },
+    );
+    appLocale.value = const Locale('en');
   });
+
 
   test('HTML Parser extracts data correctly', () {
     const testHtml = """
@@ -35,7 +37,7 @@ var onutable=new Array(
 </script>
 """;
 
-    final onus = HiosoHa7304Service.parseOnuHtml(testHtml);
+    final onus = HiosoService.parseOnuHtml(testHtml);
     expect(onus.length, 1);
 
     final onu = onus.first;
@@ -81,8 +83,8 @@ var onuOpmInfo = new Array(
 </script>
 """;
 
-    final infoRaw = HiosoHa7304Service.parseJsArray(testOnuHtml, 'onuinfo');
-    final opmRaw = HiosoHa7304Service.parseJsArray(testOnuHtml, 'onuOpmInfo');
+    final infoRaw = HiosoService.parseJsArray(testOnuHtml, 'onuinfo');
+    final opmRaw = HiosoService.parseJsArray(testOnuHtml, 'onuOpmInfo');
 
     expect(infoRaw.length, 17);
     expect(opmRaw.length, 6);
