@@ -23,7 +23,7 @@ class _KmzImportExportViewState extends State<KmzImportExportView> {
 
   Future<void> _handleImport() async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      FilePickerResult? result = await FilePicker.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['kml', 'kmz', 'zip'],
       );
