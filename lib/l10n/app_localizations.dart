@@ -160,6 +160,7 @@ class AppLocalizations {
 
   // ONU Details Dialog
   String get rebootOnuTitle => _t('Reboot ONU?', 'Mulai Ulang ONU?');
+  String get locate => _t('Locate', 'Lacak');
   String confirmReboot(String name, String id) => _t(
     'Are you sure you want to reboot $name ($id)?',
     'Yakin ingin memulai ulang $name ($id)?',

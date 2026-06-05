@@ -405,8 +405,10 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
                       ),
                     ),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  child: Wrap(
+                    alignment: WrapAlignment.center,
+                    spacing: 12.0,
+                    runSpacing: 8.0,
                     children: [
                       ElevatedButton.icon(
                         onPressed: _isRebooting
@@ -447,13 +449,17 @@ class _OnuDetailsDialogState extends State<OnuDetailsDialog> {
                             }
                           },
                           icon: const Icon(Icons.location_on, size: 18),
-                          label: const Text('Locate'),
+                          label: Text(l10n.locate),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF6366F1).withValues(alpha: 0.2),
+                            backgroundColor: const Color(
+                              0xFF6366F1,
+                            ).withValues(alpha: 0.2),
                             foregroundColor: const Color(0xFF6366F1),
                             elevation: 0,
                             side: BorderSide(
-                              color: const Color(0xFF6366F1).withValues(alpha: 0.5),
+                              color: const Color(
+                                0xFF6366F1,
+                              ).withValues(alpha: 0.5),
                             ),
                           ),
                         ),
