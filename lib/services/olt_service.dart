@@ -1,7 +1,6 @@
 import 'package:oltku/models/onu_data.dart';
 import 'package:oltku/services/storage_service.dart';
-import 'package:oltku/services/hioso_ha7304_service.dart';
-import 'package:oltku/services/hioso_ha7302cst_service.dart';
+import 'package:oltku/services/hioso_service.dart';
 
 /// General OLT Service that handles caching and delegates to specific OLT implementations.
 class OltService {
@@ -16,15 +15,9 @@ class OltService {
     required String oltId,
   }) async {
     try {
-      List<OnuData> list;
-      if (model == 'Hioso HA7304') {
-        list = await HiosoHa7304Service.fetchOnuList(
-          url: url,
-          username: username,
-          password: password,
-        );
-      } else if (model == 'Hioso HA7302CST') {
-        list = await HiosoHa7302CstService.fetchOnuList(
+      final List<OnuData> list;
+      if (model == 'Hioso') {
+        list = await HiosoService.fetchOnuList(
           url: url,
           username: username,
           password: password,
@@ -56,22 +49,15 @@ class OltService {
     required String username,
     required String password,
   }) async {
-    if (model == 'Hioso HA7304') {
-      return HiosoHa7304Service.fetchOnuConfig(
-        original: original,
-        url: url,
-        username: username,
-        password: password,
-      );
-    } else if (model == 'Hioso HA7302CST') {
-      return HiosoHa7302CstService.fetchOnuConfig(
+    if (model == 'Hioso') {
+      return HiosoService.fetchOnuConfig(
         original: original,
         url: url,
         username: username,
         password: password,
       );
     }
-    throw Exception('Unsupported OLT model: \$model');
+    throw Exception('Unsupported OLT model: $model');
   }
 
   /// Reboots the specified ONU
@@ -82,21 +68,14 @@ class OltService {
     required String username,
     required String password,
   }) async {
-    if (model == 'Hioso HA7304') {
-      return HiosoHa7304Service.rebootOnu(
-        onu: onu,
-        url: url,
-        username: username,
-        password: password,
-      );
-    } else if (model == 'Hioso HA7302CST') {
-      return HiosoHa7302CstService.rebootOnu(
+    if (model == 'Hioso') {
+      return HiosoService.rebootOnu(
         onu: onu,
         url: url,
         username: username,
         password: password,
       );
     }
-    throw Exception('Unsupported OLT model: \$model');
+    throw Exception('Unsupported OLT model: $model');
   }
 }

@@ -21,8 +21,8 @@ class _OltEditViewState extends State<OltEditView> {
   final _refreshTimeController = TextEditingController(text: '1');
   bool _obscurePassword = true;
   bool _isLoading = false;
-  final List<String> _oltModels = ['Hioso HA7304', 'Hioso HA7302CST'];
-  String _selectedOltModel = 'Hioso HA7304';
+  final List<String> _oltModels = ['Hioso'];
+  String _selectedOltModel = 'Hioso';
   
   final Map<String, IconData> _availableIcons = {
     'router': Icons.router,
