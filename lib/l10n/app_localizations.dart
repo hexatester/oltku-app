@@ -100,6 +100,12 @@ class AppLocalizations {
     'Manage map placemarks using Google Earth files',
     'Kelola penanda peta menggunakan file Google Earth',
   );
+  // Activate
+  String get activateOnu => _t('Activate ONU', 'Aktifkan ONU');
+  String get activateOnuDescription => _t(
+    'Register and provision a new ONU device on this OLT.',
+    'Daftarkan dan instalasi perangkat ONU baru di OLT ini.',
+  );
 
   // ─── KMZ Import/Export ───────────────────────────────────────────────────
   String get importKmzTitle => _t('Import KMZ/KML', 'Impor KMZ/KML');

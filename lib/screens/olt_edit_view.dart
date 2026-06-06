@@ -50,7 +50,7 @@ class _OltEditViewState extends State<OltEditView> {
 
   String _selectedOnuIcon = 'router';
   String _selectedOdpIcon = 'device_hub';
-  double _markerSize = 100.0;
+  double _markerSize = 25.0;
 
   @override
   void initState() {

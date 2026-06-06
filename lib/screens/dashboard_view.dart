@@ -212,14 +212,18 @@ class DashboardView extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.add_circle_outline, size: 40, color: Colors.white),
+                  const Icon(
+                    Icons.add_circle_outline,
+                    size: 40,
+                    color: Colors.white,
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
-                          'Activate ONU',
+                        Text(
+                          l10n.activateOnu,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -228,7 +232,7 @@ class DashboardView extends StatelessWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'Register and provision a new ONU device on this OLT.',
+                          l10n.activateOnuDescription,
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 13,
@@ -237,7 +241,11 @@ class DashboardView extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.white70,
+                    size: 16,
+                  ),
                 ],
               ),
             ),
@@ -249,10 +257,8 @@ class DashboardView extends StatelessWidget {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => KmzImportExportView(
-                    oltId: oltId,
-                    onuList: onuList,
-                  ),
+                  builder: (context) =>
+                      KmzImportExportView(oltId: oltId, onuList: onuList),
                 ),
               );
             },
@@ -275,7 +281,11 @@ class DashboardView extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.import_export, size: 40, color: Colors.white),
+                  const Icon(
+                    Icons.import_export,
+                    size: 40,
+                    color: Colors.white,
+                  ),
                   const SizedBox(width: 16),
                   Expanded(
                     child: Column(
@@ -300,7 +310,11 @@ class DashboardView extends StatelessWidget {
                       ],
                     ),
                   ),
-                  const Icon(Icons.arrow_forward_ios, color: Colors.white70, size: 16),
+                  const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Colors.white70,
+                    size: 16,
+                  ),
                 ],
               ),
             ),
